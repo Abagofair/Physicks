@@ -192,8 +192,8 @@ public class World
         {
             if (!physicsObject.IsKinematic)
             {
-                physicsObject.AddForce(CreateDragForce(physicsObject, _pixelPerMeterAirDrag));
-                physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * _pixelPerMeterGravity));
+                //physicsObject.AddForce(CreateDragForce(physicsObject, _pixelPerMeterAirDrag));
+                //physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * _pixelPerMeterGravity));
             }
 
             physicsObject.Integrate(dt);

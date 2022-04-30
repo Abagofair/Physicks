@@ -1,9 +1,13 @@
-﻿using Microsoft.Xna.Framework;
+﻿using GameUtilities.Meshes;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGameUtilities;
+using MonoGameUtilities.Rendering;
 using Physicks;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Examples
 {
@@ -12,11 +16,9 @@ namespace Examples
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        private Particle _particle;
-        private Particle _particle1;
-        private Particle _particle2;
-        private Particle _particle3;
-        private Particle _particle4;
+        private Entity _circleEntity;
+        private Entity _boxEntity;
+        private Entity _polygonEntity;
 
         private World _world;
         private SpringSystem _springSystem;
@@ -34,19 +36,42 @@ namespace Examples
                 new System.Numerics.Vector2(
                     _graphics.PreferredBackBufferWidth,
                     _graphics.PreferredBackBufferHeight));
-
-            _springSystem = new SpringSystem();
         }
 
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
 
-            _particle = new Particle(1);
-            _particle1 = new Particle(2);
-            _particle2 = new Particle(3);
-            _particle3 = new Particle(4);
-            _particle4 = new Particle(5);
+            _circleEntity = new Entity(1);
+            if (_world.TryRegisterEntity(_circleEntity.Id, out var circleObject))
+            {
+                circleObject.Position = new System.Numerics.Vector2(20.0f, 40.0f);
+                circleObject.Shape = new CircleShape(20.0f);
+            }
+
+            _boxEntity = new Entity(2);
+            if (_world.TryRegisterEntity(_boxEntity.Id, out var boxObject))
+            {
+                boxObject.Position = new System.Numerics.Vector2(50.0f, 40.0f);
+                boxObject.Shape = new BoxShape(50.0f, 40.0f);
+            }
+
+            _polygonEntity = new Entity(3);
+            if (_world.TryRegisterEntity(_polygonEntity.Id, out var polygonObject))
+            {
+                polygonObject.Position = new System.Numerics.Vector2(200.0f, 40.0f);
+                polygonObject.Shape = new PolygonShape()
+                {
+                    Vertices = new System.Numerics.Vector2[]
+                    {
+                        new System.Numerics.Vector2(50.0f, 40.0f),
+                        new System.Numerics.Vector2(100.0f, 40.0f),
+                        new System.Numerics.Vector2(75.0f, 80.0f),
+                        new System.Numerics.Vector2(50.0f, 40.0f)
+                    }
+                };
+            }
+
 
             base.Initialize();
         }
@@ -54,92 +79,30 @@ namespace Examples
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            _particle.Texture2D = Content.Load<Texture2D>("circle");
-            _particle1.Texture2D = Content.Load<Texture2D>("circle");
-            _particle2.Texture2D = Content.Load<Texture2D>("circle");
-            _particle3.Texture2D = Content.Load<Texture2D>("circle");
-            _particle4.Texture2D = Content.Load<Texture2D>("circle");
-
-            if (_world.TryRegisterEntity(_particle.Id, out PhysicsObject start))
-            {
-                start.Position = new System.Numerics.Vector2(260.0f, 25.0f);
-                start.Collideable = new CircleCollideable()
-                {
-                    Radius = _particle.Texture2D.Height * 0.3f
-                };
-                start.Mass = 1.0f;
-                //start.IsKinematic = true;
-                _world.TryUpdateEntity(_particle.Id, start);
-            }
-
-            if (_world.TryRegisterEntity(_particle1.Id, out PhysicsObject end))
-            {
-                end.Position = new System.Numerics.Vector2(360.0f, 25.0f);
-                end.Collideable = new CircleCollideable()
-                {
-                    Radius = _particle.Texture2D.Height * 0.3f
-                };
-                end.Mass = 1.0f;
-                //end.IsKinematic = true;
-                _world.TryUpdateEntity(_particle1.Id, end);
-            }
-
-            if (_world.TryRegisterEntity(_particle2.Id, out PhysicsObject start1))
-            {
-                start1.Position = new System.Numerics.Vector2(260.0f, 100.0f);
-                start1.Collideable = new CircleCollideable()
-                {
-                    Radius = _particle.Texture2D.Height * 0.50f
-                };
-                start1.Mass = 1.0f;
-                //start1.IsKinematic = true;
-                _world.TryUpdateEntity(_particle2.Id, start1);
-            }
-
-            if (_world.TryRegisterEntity(_particle3.Id, out PhysicsObject end1))
-            {
-                end1.Position = new System.Numerics.Vector2(360.0f, 100.0f);
-                end1.Collideable = new CircleCollideable()
-                {
-                    Radius = _particle.Texture2D.Height * 0.50f
-                };
-                end1.Mass = 1.0f;
-                //end1.IsKinematic = true;
-                _world.TryUpdateEntity(_particle3.Id, end1);
-            }
-
-            _springSystem.AddConnector(start, end, 75.0f, -2000.0f);
-            _springSystem.AddConnector(end, start, 75.0f, -2000.0f);
-
-            _springSystem.AddConnector(end, start1, 75.0f, -2000.0f);
-            _springSystem.AddConnector(start1, end, 75.0f, -2000.0f);
-
-            _springSystem.AddConnector(end, end1, 75.0f, -2000.0f);
-            _springSystem.AddConnector(end1, end, 75.0f, -2000.0f);
-
-            _springSystem.AddConnector(start1, end1, 75.0f, -2000.0f);
-            _springSystem.AddConnector(end1, start1, 75.0f, -2000.0f);
-
-            _springSystem.AddConnector(start, start1, 75.0f, -2000.0f);
-            _springSystem.AddConnector(start1, start, 75.0f, -2000.0f);
-
-            _springSystem.AddConnector(start, end1, 75.0f, -2000.0f);
-            _springSystem.AddConnector(end1, start, 75.0f, -2000.0f);
         }
 
+        private List<Vector2> positions = new List<Vector2>();
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            if (Keyboard.GetState().IsKeyDown(Keys.F))
+            if (_world.TryGetEntity(_circleEntity.Id, out var circleObject))
             {
-               // _world.TryAddForce(_particle.Id, new System.Numerics.Vector2(10.0f, 0.0f));
-                _world.TryAddForce(_particle.Id, new System.Numerics.Vector2(1000.0f, 0.0f));
+                circleObject.TorqueSum = 10.0f;
             }
 
-            _springSystem.UpdateForces(_world);
+            var mstate = Mouse.GetState();
+            if (mstate.LeftButton == ButtonState.Pressed)
+            {
+                positions.Add(mstate.Position.ToVector2());
+                positions = positions.Distinct().ToList();
+            }
+
+            if (mstate.RightButton == ButtonState.Pressed)
+            {
+                positions.Clear();
+            }
 
             _world.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
@@ -149,9 +112,76 @@ namespace Examples
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            _spriteBatch.Begin();
-            DrawSpringSystem();
-            _spriteBatch.End();
+
+            //_spriteBatch.GraphicsDevice.DrawUserPrimitives
+
+            /*if (_world.TryGetEntity(_circleEntity.Id, out var circleObject))
+            {
+                var radius = ((CircleShape)circleObject.Shape).Radius;
+                var center = new System.Numerics.Vector2(circleObject.Position.X + radius, circleObject.Position.Y + radius);
+                _spriteBatch.DrawCircle(center.ToXnaVector2(), radius, 10, Color.Black);
+                _spriteBatch.DrawLine(center.ToXnaVector2(), radius, circleObject.Rotation, Color.Black, 1.0f);
+            }*/
+
+
+
+            if (_world.TryGetEntity(_boxEntity.Id, out var boxObject))
+            {
+                /*_spriteBatch.DrawPoints(boxObject.Position.ToXnaVector2(),
+                    ((BoxShape)boxObject.Shape).Vertices.Select(x => x.ToXnaVector2()).ToList(),
+                    Color.Black,
+                    1.0f);*/
+                var vert = new VertexDeclaration(
+                    new VertexElement(0, VertexElementFormat.Vector2, VertexElementUsage.Position, 0));
+                //var vertices = ((BoxShape)boxObject.Shape).Vertices.Select(x => x.ToXnaVector2()).ToArray();
+
+                var v = Triangulation.FromVertices(((BoxShape)boxObject.Shape).Vertices[0], ((BoxShape)boxObject.Shape).Vertices[1], ((BoxShape)boxObject.Shape).Vertices[2], ((BoxShape)boxObject.Shape).Vertices[3]);
+
+                /*_basicEffect.CurrentTechnique.Passes[0].Apply();
+                _spriteBatch.GraphicsDevice.DrawUserPrimitives(
+                    PrimitiveType.TriangleList,
+                    vertices,
+                    0,
+                    1,
+                    vert);*/
+                var sp = new DebugSpriteRenderer(GraphicsDevice);
+
+                /*var super = MeshHelpers.CreateSuperTriangle(MeshHelpers.GetVertices(v).Select(x => x.Position).ToArray(), 10.0f, 1000);
+                var t = MeshHelpers.Delaunay_BowyerWatson(MeshHelpers.GetVertices(v).Select(x => x.Position).ToArray());
+
+                sp.Draw(MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).ToArray(), Matrix.CreateTranslation(new Vector3(100.0f, 100.0f, 0.0f)));
+
+                _spriteBatch.Begin(transformMatrix: Matrix.CreateTranslation(new Vector3(100.0f, 100.0f, 0.0f)));
+                foreach (var item in ((BoxShape)boxObject.Shape).Vertices)
+                {
+                    _spriteBatch.DrawCircle(item.ToXnaVector2(), 2.5f, 20, Color.Yellow);
+                }
+                foreach (var item in super.DistinctVertices())
+                {
+                    _spriteBatch.DrawCircle(item.Position.ToXnaVector2(), 2.5f, 20, Color.Orange);
+                }
+                _spriteBatch.End();*/
+
+                _spriteBatch.Begin();
+                var t1 = MeshHelpers.Delaunay_BowyerWatson(positions.Select(x => new System.Numerics.Vector2(x.X, x.Y)).ToArray());
+
+                foreach (var item in positions)
+                {
+                    _spriteBatch.DrawCircle(item, 2.5f, 5, Color.Green);
+                }
+
+                sp.Draw(MeshHelpers.GetVertices(t1).Select(x => x.Position.ToXnaVector2()).ToArray());
+
+                _spriteBatch.End();
+            }
+
+            /*if (_world.TryGetEntity(_polygonEntity.Id, out var polygonObject))
+            {
+                _spriteBatch.DrawPoints(polygonObject.Position.ToXnaVector2(),
+                    ((PolygonShape)polygonObject.Shape).Vertices.Select(x => x.ToXnaVector2()).ToList(),
+                    Color.Black,
+                    1.0f);
+            }*/
             base.Draw(gameTime);
         }
 
@@ -163,13 +193,13 @@ namespace Examples
                 var a = connector.StartAnchor;
                 var b = connector.EndAnchor;
 
-                _spriteBatch.DrawLine(
+                /*_spriteBatch.DrawLine(
                     new Vector2(a.Position.ToXnaVector2().X + (32.0f * 0.3f), a.Position.ToXnaVector2().Y + (32.0f * 0.3f)),
                     new Vector2(b.Position.ToXnaVector2().X + (32.0f * 0.3f), b.Position.ToXnaVector2().Y + (32.0f * 0.3f)),
                     Color.Black,
-                    2.5f);
+                    2.5f);*/
 
-                _spriteBatch.Draw(
+                /*_spriteBatch.Draw(
                     _particle.Texture2D,
                     a.Position.ToXnaVector2(),
                     null,
@@ -189,7 +219,7 @@ namespace Examples
                     new Vector2(0.0f, 0.0f),
                     0.3f,
                     SpriteEffects.None,
-                    0.0f);
+                    0.0f);*/
             }
         }
     }

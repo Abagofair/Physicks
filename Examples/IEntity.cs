@@ -1,6 +1,6 @@
 ﻿namespace Examples
 {
-    public abstract class Entity
+    public class Entity
     {
         private const string NoName = "NoName";
 
