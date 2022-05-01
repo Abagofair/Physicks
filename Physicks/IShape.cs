@@ -2,6 +2,6 @@
 {
     public interface IShape
     {
-        float MomentOfInertia { get; }
+        virtual float MomentOfInertia => 1.0f;
     }
 }

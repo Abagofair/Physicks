@@ -49,71 +49,17 @@ public class World
         }
     }
 
-    public void Update(float dt)
+    public void Update(IEnumerable<PhysicsObject> physicsObjects, float dt)
     {
         _accumulator += dt;
 
         while (_accumulator >= SecondsPerFrame)
         {
-            IntegrateObjects(dt);
+            IntegrateObjects(physicsObjects, dt);
 
             _accumulator -= dt;
             ElapsedTimeMilliseconds += dt;
         }
-    }
-
-    //find better way to handle this entity thingy
-    //could have a func that handle creation
-    public bool TryRegisterEntity(int entityId, out PhysicsObject? pObject)
-    {
-        pObject = null;
-
-        if (_objects.ContainsKey(entityId))
-        {
-            return false;
-        }
-
-        pObject = new PhysicsObject();
-        _objects.Add(entityId, pObject);
-        return true;
-    }
-
-    public bool TryGetEntity(int entityId, out PhysicsObject? pObject)
-    {
-        pObject = null;
-
-        if (_objects.ContainsKey(entityId))
-        {
-            pObject = _objects[entityId];
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool TryUpdateEntity(int entityId, PhysicsObject physics2DObject)
-    {
-        if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
-
-        if (_objects.ContainsKey(entityId))
-        {
-            _objects[entityId] = physics2DObject;
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool TryAddForce(int entityId, Vector2 force)
-    {
-        if (_objects.ContainsKey(entityId))
-        {
-            var pObject = _objects[entityId];
-            pObject.AddForce(force);
-            return true;
-        }
-
-        return false;
     }
 
     public static Vector2 CreateDragForce(PhysicsObject physics2DObject, float dragCoeff)
@@ -186,14 +132,14 @@ public class World
             return;
     }
 
-    private void IntegrateObjects(float dt)
+    private void IntegrateObjects(IEnumerable<PhysicsObject> physicsObjects, float dt)
     {
-        foreach (PhysicsObject physicsObject in _objects.Values)
+        foreach (PhysicsObject physicsObject in physicsObjects)
         {
             if (!physicsObject.IsKinematic)
             {
-                //physicsObject.AddForce(CreateDragForce(physicsObject, _pixelPerMeterAirDrag));
-                //physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * _pixelPerMeterGravity));
+                physicsObject.AddForce(CreateDragForce(physicsObject, _pixelPerMeterAirDrag));
+                physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * _pixelPerMeterGravity));
             }
 
             physicsObject.Integrate(dt);

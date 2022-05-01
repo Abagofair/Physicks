@@ -10,6 +10,6 @@ namespace Physicks
         }
 
         public Vector2[] Vertices { get; set; }
-        public float MomentOfInertia { get; set; }
+        public virtual float MomentOfInertia { get; set; }
     }
 }

@@ -9,12 +9,10 @@ public class PhysicsObject
     public Vector2 Position { get; set; }
     public Vector2 Velocity { get; set; }
     public Vector2 Acceleration { get; set; }
-
     public float TorqueSum { get; set; }
     public float Rotation { get; set; }
     public float AngularVelocity { get; set; }
     public float AngularAcceleration { get; set; }
-
     private float _mass = 1.0f;
     public float Mass
     {
@@ -26,10 +24,10 @@ public class PhysicsObject
         }
     }
     public float InverseMass { get; private set; } = 1.0f;
-
     public ICollideable? Collideable { get; set; }
-
     public IShape? Shape { get; set; }
+    //cache transform
+    public Matrix4x4 Transform => Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 1.0f));
     public float MomentOfInertia => (Shape?.MomentOfInertia ?? 0.0f) * Mass;
     public float InverseMomentOfInertia => 1.0f / MomentOfInertia; //dont calculate every time
 

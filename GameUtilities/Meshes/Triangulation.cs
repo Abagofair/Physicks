@@ -39,15 +39,5 @@ public class Triangulation
 
         return triangulation;
     }
-
-    public static Triangulation QuadTest()
-    {
-        var v1 = new Vertex(new Vector2(0.0f, 0.0f));
-        var v2 = new Vertex(new Vector2(1.0f, 0.0f));
-        var v3 = new Vertex(new Vector2(1.0f, 1.0f));
-        var v4 = new Vertex(new Vector2(0.0f, 1.0f));
-
-        return FromVertices(v1, v2, v3, v4);
-    }
 }
 

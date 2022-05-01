@@ -20,6 +20,6 @@ namespace Physicks
 
         public float Width { get; }
         public float Height { get; }
-        public new float MomentOfInertia => 0.083333f * Width * Width * Height * Height;
+        public override float MomentOfInertia => 0.083333f * Width * Width * Height * Height;
     }
 }
