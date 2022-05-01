@@ -20,77 +20,35 @@ public static class MeshHelpers
         return vertices.ToArray();
     }
 
-    /// <summary>
-    /// Attempt to contain all positions in a 'super' triangle
-    /// <br/>
-    /// TODO: Find a smarter person and a smarter solution
-    /// </summary>
-    /// <param name="positions">less than 3 positions will always return null</param>
-    /// <param name="stepAmount"></param>
-    /// <param name="attempts">attempts to add stepAmount before returning null</param>
-    /// <returns>Triangle containing all positions or null if no reasonable solution could be found</returns>
-    public static Triangle? CreateSuperTriangle(Vector2[] positions, float stepAmount, int attempts)
+    public static IEnumerable<Vector2> PointsFromCircle(float radius, int points)
     {
-        if (positions == null) throw new ArgumentNullException(nameof(positions));
-        if (positions.Length < 3) return null;
+        if (radius < 0) throw new ArgumentException(nameof(radius));
 
-        // I think this ordering makes it so that no position exists below or to the right of the triangle.
-        // Which ensures i can just step a left and c up.
-        var orderedPositions = positions
-            .OrderBy(x => x.X)
-            .ThenBy(x => x.Y)
-            .ToArray();
+        double stepRadians = (Math.PI * 2.0) / points;
+        double current = 0.0;
 
-        var a = new Vertex(orderedPositions[0]);
-        var c = new Vertex(orderedPositions[^1]);
-        var b = new Vertex(new Vector2(c.Position.X, a.Position.Y));
-
-        // right triangle half side of quad
-        var aToB = new Edge(a, b);
-        var bToC = new Edge(b, c);
-        var cToA = new Edge(c, a);
-        var superTriangle = new Triangle(aToB, bToC, cToA);
-
-        bool isValid = true;
-        for (int i = 0; i < attempts; i++)
+        for (int i = 0; i < points; i++)
         {
-            foreach (Vector2 position in positions)
-            {
-                if (!superTriangle.IsPositionInTriangle(position))
-                {
-                    isValid = false;
-                    break;
-                }
-            }
+            float x = (float)Math.Cos(current);
+            float y = (float)Math.Sin(current);
 
-            if (!isValid)
-            {
-                a = new Vertex(new Vector2(a.Position.X - stepAmount, a.Position.Y));
-                c = new Vertex(new Vector2(c.Position.X, c.Position.Y + stepAmount));
-                b = new Vertex(new Vector2(c.Position.X, a.Position.Y));
+            if (1.0f - Math.Abs(x) <= 0.05)
+                x = Math.Sign(x) == 1 ? 1.0f : -1.0f;
+            if (1.0f - Math.Abs(y) <= 0.05)
+                y = Math.Sign(y) == 1 ? 1.0f : -1.0f;
 
-                // right triangle half side of quad
-                aToB = new Edge(a, b);
-                bToC = new Edge(b, c);
-                cToA = new Edge(c, a);
-                superTriangle = new Triangle(aToB, bToC, cToA);
+            var point = new Vector2(x, y);
+            point *= radius;
 
-                isValid = true;
-            }
-            else
-            {
-                return superTriangle;
-            }
+            current += stepRadians;
+
+            yield return point;
         }
-
-        return null;
     }
 
-    public static Triangulation? Delaunay_BowyerWatson(Vector2[] positions)
+    public static Triangulation? Delaunay_BowyerWatson(IEnumerable<Vector2> positions)
     {
         if (positions == null) throw new ArgumentNullException(nameof(positions));
-        if (positions.Length < 3) 
-            return null;
 
         var va = new Vertex(new Vector2(300.0f, -10000.0f));
         var vb = new Vertex(new Vector2(3000.0f, 5000.0f));

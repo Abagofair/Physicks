@@ -20,7 +20,7 @@ public class Entities<TEntityContext> where TEntityContext : IEntityContext
     public int NextAvailableIndex => _nextAvailableIndex;
     private IEnumerable<TEntityContext> AssignedEntities => _entities.Where(x => x != null);
 
-    public Entity RegisterEntity(TEntityContext entityContext)
+    public Entity CreateEntity(TEntityContext entityContext)
     {
         if (_nextAvailableIndex >= _currentSize)
         {
@@ -51,6 +51,7 @@ public class Entities<TEntityContext> where TEntityContext : IEntityContext
         foreach (var entityContext in AssignedEntities)
         {
             TComponent? component = entityContext.Query<TComponent>();
+
             if (component != null) yield return component;
         }
     }
@@ -63,6 +64,7 @@ public class Entities<TEntityContext> where TEntityContext : IEntityContext
         {
             TComponentA? componentA = entityContext.Query<TComponentA>();
             TComponentB? componentB = entityContext.Query<TComponentB>();
+
             if (componentA != null && componentB != null)
                 yield return (componentA, componentB);
         }
@@ -78,6 +80,7 @@ public class Entities<TEntityContext> where TEntityContext : IEntityContext
             TComponentA? componentA = entityContext.Query<TComponentA>();
             TComponentB? componentB = entityContext.Query<TComponentB>();
             TComponentC? componentC = entityContext.Query<TComponentC>();
+
             if (componentA != null && componentB != null && componentC != null)
                 yield return (componentA, componentB, componentC);
         }

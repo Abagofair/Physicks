@@ -34,6 +34,9 @@ public class PhysicsObject
     //https://gafferongames.com/post/integration_basics/
     public void Integrate(float dt)
     {
+        if (IsKinematic)
+            return;
+
         Acceleration = ForceSum * InverseMass;
         Velocity += Acceleration * dt;
         Position += Velocity * dt;

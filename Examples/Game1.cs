@@ -19,6 +19,7 @@ namespace Examples
 
         private Entity _boxEntity;
         private Entity _polygonEntity;
+        private Entity _circleEntity;
 
         private World _world;
 
@@ -56,7 +57,20 @@ namespace Examples
             });
             var t = MeshHelpers.Delaunay_BowyerWatson(boxShape.Vertices);
             boxShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
-            _boxEntity = _entities.RegisterEntity(boxShapeEntityContext);
+            _boxEntity = _entities.CreateEntity(boxShapeEntityContext);
+
+            var circleShapeEntityContext = new EntityContext();
+            var circleShape = new CircleShape(25.0f);
+            circleShapeEntityContext.AddOrOverride(new PhysicsObject()
+            {
+                Position = new System.Numerics.Vector2(300.0f, 60.0f),
+                Shape = circleShape,
+                IsKinematic = true
+            });
+            var points = MeshHelpers.PointsFromCircle(circleShape.Radius, 9);
+            t = MeshHelpers.Delaunay_BowyerWatson(points);
+            circleShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
+            _circleEntity = _entities.CreateEntity(circleShapeEntityContext);
 
             /*_polygonEntity = new Entity(3);
             if (_world.TryRegisterEntity(_polygonEntity.Id, out var polygonObject))
@@ -74,7 +88,6 @@ namespace Examples
                 };
             }*/
 
-
             base.Initialize();
         }
 
@@ -84,7 +97,6 @@ namespace Examples
             _debugSpriteRenderer = new DebugSpriteRenderer(GraphicsDevice);
         }
 
-        private List<Vector2> positions = new List<Vector2>();
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -95,17 +107,9 @@ namespace Examples
                 box.TorqueSum = 100000.0f;
             }*/
 
-            var mstate = Mouse.GetState();
-            if (mstate.LeftButton == ButtonState.Pressed)
-            {
-                positions.Add(mstate.Position.ToVector2());
-                positions = positions.Distinct().ToList();
-            }
-
-            if (mstate.RightButton == ButtonState.Pressed)
-            {
-                positions.Clear();
-            }
+            EntityContext circleContext = _entities.GetEntityContext(ref _circleEntity);
+            circleContext.Query<PhysicsObject>().Position = new System.Numerics.Vector2(
+                Mouse.GetState().X, Mouse.GetState().Y);
 
             _world.Update(_entities.Query<PhysicsObject>(), (float)gameTime.ElapsedGameTime.TotalSeconds);
 
@@ -120,28 +124,14 @@ namespace Examples
             {
                 _debugSpriteRenderer.Draw(renderable, physicsObject.Transform.ToXnaMatrix4x4());
 
-                /*_spriteBatch.Begin(transformMatrix: physicsObject.Transform.ToXnaMatrix4x4());
-                foreach (var item in ((BoxShape)physicsObject.Shape).Vertices)
-                {
-                    _spriteBatch.DrawCircle(item.ToXnaVector2(), 2.5f, 20, Color.Yellow);
-                }
-                _spriteBatch.End();*/
+                //_spriteBatch.Begin(transformMatrix: physicsObject.Transform.ToXnaMatrix4x4());
+                //foreach (var item in (renderable.Vertices))
+                //{
+                //    _spriteBatch.DrawCircle(new Vector2(item.Position.X, item.Position.Y), 2.5f, 20, Color.Yellow);
+                //}
+                //_spriteBatch.End();
             }
 
-            //if (_world.TryGetEntity(_boxEntity.Id, out var boxObject))
-            //{
-            //    var t = MeshHelpers.Delaunay_BowyerWatson(((BoxShape)boxObject.Shape).Vertices);
-
-            //    _debugSpriteRenderer.Draw(MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).ToArray(), boxObject.Transform.ToXnaMatrix4x4());
-
-            //    _spriteBatch.Begin(transformMatrix: boxObject.Transform.ToXnaMatrix4x4());
-            //    foreach (var item in ((BoxShape)boxObject.Shape).Vertices)
-            //    {
-            //        _spriteBatch.DrawCircle(item.ToXnaVector2(), 2.5f, 20, Color.Yellow);
-            //    }
-            //    _spriteBatch.End();
-
-            //}
             base.Draw(gameTime);
         }
     }
