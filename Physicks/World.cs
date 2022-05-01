@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 
 namespace Physicks;
 
@@ -10,9 +11,6 @@ public class World
     private float _pixelPerMeterGravity;
     private float _airDrag;
     private float _pixelPerMeterAirDrag;
-
-    private Dictionary<int, PhysicsObject> _objects;
-    //private Memory<Physics2DObject> _objects;
 
     public World(
         Vector2 worldBounds,
@@ -29,8 +27,6 @@ public class World
         _worldBounds = worldBounds;
         PixelsPerMeter = pixelsPerMeter;
         SimulationHertz = simulationHertz;
-
-        _objects = new Dictionary<int, PhysicsObject>();
     }
 
     public int PixelsPerMeter { get; }
@@ -59,6 +55,23 @@ public class World
 
             _accumulator -= dt;
             ElapsedTimeMilliseconds += dt;
+        }
+    }
+
+    public void HandleCollisions(IEnumerable<PhysicsObject> physicsObjects)
+    {
+        foreach (PhysicsObject a in physicsObjects)
+        {
+            foreach (PhysicsObject b in physicsObjects)
+            {
+                if (ReferenceEquals(a, b))
+                    continue;
+
+                if (CollisionDetection.IsColliding(a, b, out CollisionContact? collisionContact))
+                {
+                    collisionContact?.ResolvePenetration();
+                }
+            }
         }
     }
 

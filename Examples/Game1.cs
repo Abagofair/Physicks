@@ -20,6 +20,7 @@ namespace Examples
         private Entity _boxEntity;
         private Entity _polygonEntity;
         private Entity _circleEntity;
+        private Entity _circleEntity1;
 
         private World _world;
 
@@ -72,6 +73,20 @@ namespace Examples
             circleShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
             _circleEntity = _entities.CreateEntity(circleShapeEntityContext);
 
+            circleShapeEntityContext = new EntityContext();
+            circleShape = new CircleShape(25.0f);
+            circleShapeEntityContext.AddOrOverride(new PhysicsObject()
+            {
+                Position = new System.Numerics.Vector2(300.0f, 90.0f),
+                Shape = circleShape,
+                IsKinematic = false,
+                Mass = 0.01f
+            });
+            points = MeshHelpers.PointsFromCircle(circleShape.Radius, 9);
+            t = MeshHelpers.Delaunay_BowyerWatson(points);
+            circleShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
+            _circleEntity1 = _entities.CreateEntity(circleShapeEntityContext);
+
             /*_polygonEntity = new Entity(3);
             if (_world.TryRegisterEntity(_polygonEntity.Id, out var polygonObject))
             {
@@ -101,6 +116,8 @@ namespace Examples
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            _world.HandleCollisions(_entities.Query<PhysicsObject>());
 
             /*if (_world.TryGetEntity(_boxEntity.Id, out var box))
             {

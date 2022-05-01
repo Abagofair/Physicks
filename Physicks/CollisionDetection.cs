@@ -4,13 +4,18 @@ namespace Physicks;
 
 public class CollisionDetection
 {
-    public static bool IsColliding(PhysicsObject a, PhysicsObject b)
+    public static bool IsColliding(PhysicsObject a, PhysicsObject b, out CollisionContact? collisionContact)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
 
+        collisionContact = null;
+
         if (a.Shape is CircleShape && b.Shape is CircleShape)
-            return IsCollidingCircleCircle(a, b, out CollisionContact? collisionContact);
+        {
+            return IsCollidingCircleCircle(a, b, out collisionContact);
+        }
+
         return false;
     }
 
