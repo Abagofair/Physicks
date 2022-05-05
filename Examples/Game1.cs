@@ -1,5 +1,6 @@
 ﻿using GameUtilities.Entities;
 using GameUtilities.Meshes;
+using GameUtilities.Options;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -29,6 +30,8 @@ namespace Examples
 
         private Entities<EntityContext> _entities;
 
+        private GameOptions _gameOptions;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -49,8 +52,11 @@ namespace Examples
 
         protected override void Initialize()
         {
-            _graphics.PreferredBackBufferHeight = 1080;
-            _graphics.PreferredBackBufferWidth = 1920;
+            _gameOptions = GameOptions.Load("Options.json");
+
+            _graphics.PreferredBackBufferHeight = _gameOptions.Graphics.Display.Height;
+            _graphics.PreferredBackBufferWidth = _gameOptions.Graphics.Display.Width;
+            _graphics.IsFullScreen = _gameOptions.Graphics.Display.Fullscreen;
             _graphics.ApplyChanges();
 
             var boxShapeEntityContext = new EntityContext();

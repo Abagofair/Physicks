@@ -32,4 +32,12 @@
     <ProjectReference Include="..\MonoGameUtilities\MonoGameUtilities.csproj" />
     <ProjectReference Include="..\Physicks\Physicks.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Options\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Options.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
