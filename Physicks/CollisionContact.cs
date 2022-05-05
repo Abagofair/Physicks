@@ -30,17 +30,38 @@ public class CollisionContact
     //ProjectionMethod
     public void ResolvePenetration()
     {
-        if (A.IsKinematic && B.IsKinematic)
-            return;
+        if (!A.IsKinematic)
+        {
+            float da = Depth / (A.InverseMass + B.InverseMass) * A.InverseMass;
+            A.Position -= Normal * da;
+        }
 
-        float da = Depth / (A.InverseMass * B.InverseMass) * A.InverseMass;
-        float db = Depth / (A.InverseMass * B.InverseMass) * B.InverseMass;
-
-        A.Position -= Normal * da;
-        B.Position += Normal * db;
+        if (!B.IsKinematic)
+        {
+            float db = Depth / (A.InverseMass + B.InverseMass) * B.InverseMass;
+            B.Position += Normal * db;
+        }
     }
 
-    public static CollisionContact FromCircleCircle(PhysicsObject a, PhysicsObject b)
+    //ImpulseMethod
+    public void ResolvePenetrationByImpulse()
+    {
+        ResolvePenetration();
+
+        float e = Math.Min(A.Restitution, B.Restitution);
+        
+        float vRelDotNormal = Vector2.Dot(A.Velocity - B.Velocity, Normal);
+
+        //-(1 + elasticityCoefficient)
+        float impulseMagnitude = -(1 + e) * vRelDotNormal / (A.InverseMass + B.InverseMass);
+
+        Vector2 impulse = impulseMagnitude * Normal * World.PixelsPerMeter;
+
+        A.ApplyImpulse(impulse);
+        B.ApplyImpulse(-impulse);
+    }
+
+    public static CollisionContact FromCircleCircleCollision(PhysicsObject a, PhysicsObject b)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
@@ -51,7 +72,7 @@ public class CollisionContact
             Vector2 normal = Vector2.Normalize(aToB);
             Vector2 start = b.Position - normal * bShape.Radius;
             Vector2 end = a.Position + normal * aShape.Radius;
-            float depth = Vector2.Distance(start, end);
+            float depth = Vector2.Distance(end, start);
 
             return new CollisionContact(
                 a,

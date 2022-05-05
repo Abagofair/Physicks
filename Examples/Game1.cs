@@ -18,7 +18,8 @@ namespace Examples
         private SpriteBatch _spriteBatch;
 
         private Entity _boxEntity;
-        private Entity _polygonEntity;
+        private Entity _boxEntity1;
+
         private Entity _circleEntity;
         private Entity _circleEntity1;
 
@@ -31,6 +32,7 @@ namespace Examples
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
+
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
 
@@ -47,45 +49,67 @@ namespace Examples
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
+            _graphics.PreferredBackBufferHeight = 1080;
+            _graphics.PreferredBackBufferWidth = 1920;
+            _graphics.ApplyChanges();
 
             var boxShapeEntityContext = new EntityContext();
             var boxShape = new BoxShape(50.0f, 50.0f);
             boxShapeEntityContext.AddOrOverride(new PhysicsObject()
             {
-                Position = new System.Numerics.Vector2(200.0f, 40.0f),
-                Shape = boxShape
+                Position = new System.Numerics.Vector2(600.0f, 120.0f),
+                Shape = boxShape,
+                Mass = 5.0f,
+                Rotation = -0.5f,
+                Restitution = 1.0f
             });
             var t = MeshHelpers.Delaunay_BowyerWatson(boxShape.Vertices);
             boxShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
             _boxEntity = _entities.CreateEntity(boxShapeEntityContext);
 
-            var circleShapeEntityContext = new EntityContext();
-            var circleShape = new CircleShape(25.0f);
-            circleShapeEntityContext.AddOrOverride(new PhysicsObject()
+            boxShapeEntityContext = new EntityContext();
+            boxShape = new BoxShape(50.0f, 50.0f);
+            boxShapeEntityContext.AddOrOverride(new PhysicsObject()
             {
-                Position = new System.Numerics.Vector2(300.0f, 60.0f),
-                Shape = circleShape,
+                Position = new System.Numerics.Vector2(600.0f, 1000.0f),
+                Shape = boxShape,
+                Mass = 10.0f,
                 IsKinematic = true
             });
-            var points = MeshHelpers.PointsFromCircle(circleShape.Radius, 9);
+            t = MeshHelpers.Delaunay_BowyerWatson(boxShape.Vertices);
+            boxShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
+            _boxEntity1 = _entities.CreateEntity(boxShapeEntityContext);
+
+            /*var circleShapeEntityContext = new EntityContext();
+            var circleShape = new CircleShape(50.0f);
+            circleShapeEntityContext.AddOrOverride(new PhysicsObject()
+            {
+                Position = new System.Numerics.Vector2(300.0f, 300.0f),
+                Shape = circleShape,
+                IsKinematic = true,
+                Mass = 1.0f,
+                Restitution = 0.2f
+            });
+
+            var points = MeshHelpers.PointsFromCircle(circleShape.Radius, 15);
             t = MeshHelpers.Delaunay_BowyerWatson(points);
             circleShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
             _circleEntity = _entities.CreateEntity(circleShapeEntityContext);
 
             circleShapeEntityContext = new EntityContext();
-            circleShape = new CircleShape(25.0f);
+            circleShape = new CircleShape(40.0f);
             circleShapeEntityContext.AddOrOverride(new PhysicsObject()
             {
-                Position = new System.Numerics.Vector2(300.0f, 90.0f),
+                Position = new System.Numerics.Vector2(300.0f, 60.0f),
                 Shape = circleShape,
                 IsKinematic = false,
-                Mass = 0.01f
+                Mass = 10.0f,
+                Restitution = 0.9f
             });
             points = MeshHelpers.PointsFromCircle(circleShape.Radius, 9);
             t = MeshHelpers.Delaunay_BowyerWatson(points);
             circleShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
-            _circleEntity1 = _entities.CreateEntity(circleShapeEntityContext);
+            _circleEntity1 = _entities.CreateEntity(circleShapeEntityContext);*/
 
             /*_polygonEntity = new Entity(3);
             if (_world.TryRegisterEntity(_polygonEntity.Id, out var polygonObject))
@@ -125,11 +149,11 @@ namespace Examples
             }*/
 
             EntityContext circleContext = _entities.GetEntityContext(ref _circleEntity);
-            circleContext.Query<PhysicsObject>().Position = new System.Numerics.Vector2(
-                Mouse.GetState().X, Mouse.GetState().Y);
+            /*circleContext.Query<PhysicsObject>().Position = new System.Numerics.Vector2(
+                Mouse.GetState().X, Mouse.GetState().Y);*/
 
             _world.Update(_entities.Query<PhysicsObject>(), (float)gameTime.ElapsedGameTime.TotalSeconds);
-
+            
             base.Update(gameTime);
         }
 

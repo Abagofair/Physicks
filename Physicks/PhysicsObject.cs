@@ -20,16 +20,34 @@ public class PhysicsObject
         set
         {
             _mass = value;
-            InverseMass = 1.0f / _mass;
+
+            if (_mass != 0.0f)
+            {
+                InverseMass = 1.0f / _mass;
+            }
+            else
+            {
+                InverseMass = 0.0f;
+            }
         }
     }
+    public float Restitution { get; set; } = 1.0f;
     public float InverseMass { get; private set; } = 1.0f;
     public ICollideable? Collideable { get; set; }
     public IShape? Shape { get; set; }
     //cache transform
-    public Matrix4x4 Transform => Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 1.0f));
+    public Matrix4x4 Transform => Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0.0f));
+    public Vector2 WorldPosition(Vector2 offset) => Vector2.Transform(offset, Transform);
     public float MomentOfInertia => (Shape?.MomentOfInertia ?? 0.0f) * Mass;
-    public float InverseMomentOfInertia => 1.0f / MomentOfInertia; //dont calculate every time
+    public float InverseMomentOfInertia
+    {
+        get
+        {
+            if (MomentOfInertia != 0.0f)
+                return 1.0f / MomentOfInertia; //dont calculate every time
+            return 0.0f;
+        }
+    }
 
     //https://gafferongames.com/post/integration_basics/
     public void Integrate(float dt)
@@ -52,5 +70,16 @@ public class PhysicsObject
         TorqueSum = 0.0f;
     }
 
-    public void AddForce(Vector2 force) => ForceSum += force;
+    public void AddForce(Vector2 force)
+    {
+        ForceSum += force;
+    }
+
+    public void ApplyImpulse(Vector2 impulse)
+    {
+        if (IsKinematic)
+            return;
+
+        Velocity += impulse * InverseMass;
+    }
 }

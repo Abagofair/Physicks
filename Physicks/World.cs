@@ -29,7 +29,7 @@ public class World
         SimulationHertz = simulationHertz;
     }
 
-    public int PixelsPerMeter { get; }
+    public static int PixelsPerMeter { get; private set; }
 
     public float ElapsedTimeMilliseconds { get; private set; }
     public float SecondsPerFrame { get; private set; }
@@ -60,16 +60,17 @@ public class World
 
     public void HandleCollisions(IEnumerable<PhysicsObject> physicsObjects)
     {
-        foreach (PhysicsObject a in physicsObjects)
+        var arr = physicsObjects.ToArray();
+        for (int i = 0; i < arr.Length - 1; i++)
         {
-            foreach (PhysicsObject b in physicsObjects)
+            for (int j = i + 1; j < arr.Length; j++)
             {
-                if (ReferenceEquals(a, b))
-                    continue;
+                var a = arr[i];
+                var b = arr[j];
 
                 if (CollisionDetection.IsColliding(a, b, out CollisionContact? collisionContact))
                 {
-                    collisionContact?.ResolvePenetration();
+                    collisionContact?.ResolvePenetrationByImpulse();
                 }
             }
         }
@@ -153,9 +154,9 @@ public class World
             {
                 physicsObject.AddForce(CreateDragForce(physicsObject, _pixelPerMeterAirDrag));
                 physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * _pixelPerMeterGravity));
+                physicsObject.Integrate(dt);
             }
 
-            physicsObject.Integrate(dt);
             HandleWorldBounds(physicsObject);
         }
     }

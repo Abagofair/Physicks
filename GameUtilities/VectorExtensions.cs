@@ -11,4 +11,9 @@ public static class VectorExtensions
         
         return new Vector2(x, y);
     }
+
+    public static Vector2 Normal(this Vector2 vector2)
+    {
+        return Vector2.Normalize(new Vector2(vector2.Y, -vector2.X));
+    }
 }
