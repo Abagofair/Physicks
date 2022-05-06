@@ -1,0 +1,25 @@
+{
+  "Scene": {
+    "Entities": [
+      {
+        "Name": "Box",
+        "Components": {
+          "Physics": {
+            "IsKinematic": true,
+            "Position": {
+              "x": 10.0,
+              "y": 10.0
+            },
+            "Rotation": 0.0,
+            "Restitution": 1.0,
+            "Mass": 1.0,
+            "BoxShape": {
+              "Width": 50.0,
+              "Height":  50.0
+            }
+          }
+        }
+      }
+    ]
+  }
+}

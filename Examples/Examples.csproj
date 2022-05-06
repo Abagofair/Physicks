@@ -33,9 +33,9 @@
     <ProjectReference Include="..\Physicks\Physicks.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Options\" />
-  </ItemGroup>
-  <ItemGroup>
+    <None Update="Editor\Scene.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Options.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

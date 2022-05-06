@@ -1,6 +1,7 @@
 ﻿using GameUtilities.Entities;
 using GameUtilities.Meshes;
 using GameUtilities.Options;
+using GameUtilities.System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -9,6 +10,7 @@ using MonoGameUtilities.Rendering;
 using Physicks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Examples
@@ -32,6 +34,8 @@ namespace Examples
 
         private GameOptions _gameOptions;
 
+        private FileWatcherService _fileWatcherService;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -48,6 +52,9 @@ namespace Examples
                     _graphics.PreferredBackBufferHeight));
 
             _entities = new Entities<EntityContext>(100);
+
+            _fileWatcherService = new FileWatcherService("Editor");
+            _fileWatcherService.WatchFile("Scene.json", () => Debug.WriteLine("Changed scene.json"));
         }
 
         protected override void Initialize()
