@@ -1,4 +1,4 @@
-﻿namespace GameUtilities.Entities;
+﻿namespace GameUtilities.EntitySystem;
 
 //v0.1
 //todo: something better allocated
@@ -8,30 +8,34 @@ public class Entities<TEntityContext> where TEntityContext : IEntityContext
     private static int _nextAvailableIndex = 0;
     private static int _currentSize = 0;
 
-    private readonly TEntityContext[] _entities;
+    private readonly TEntityContext[] _entityContexts;
+    private readonly List<Entity> _entities;
 
     public Entities(int initialSize)
     {
-        _entities = new TEntityContext[initialSize];
+        _entities = new List<Entity>();
+        _entityContexts = new TEntityContext[initialSize];
         _currentSize = initialSize;
     }
 
     public int CurrentSize => _currentSize;
     public int NextAvailableIndex => _nextAvailableIndex;
-    private IEnumerable<TEntityContext> AssignedEntities => _entities.Where(x => x != null);
+    private IEnumerable<TEntityContext> AssignedEntities => _entityContexts.Where(x => x != null);
 
     public Entity CreateEntity(TEntityContext entityContext)
     {
         if (_nextAvailableIndex >= _currentSize)
         {
             TEntityContext[] resized = new TEntityContext[_currentSize + 50];
-            Array.Copy(_entities, resized, _entities.Length);
+            Array.Copy(_entityContexts, resized, _entityContexts.Length);
             _currentSize += 50;
         }
 
-        _entities[_nextAvailableIndex] = entityContext;
+        _entityContexts[_nextAvailableIndex] = entityContext;
 
         var entity = new Entity(_nextAvailableIndex);
+
+        _entities.Add(entity);
 
         _nextAvailableIndex += 1;
 
@@ -42,7 +46,7 @@ public class Entities<TEntityContext> where TEntityContext : IEntityContext
     {
         if (entity.Id < 0 || entity.Id > _currentSize) throw new IndexOutOfRangeException(nameof(entity.Id));
 
-        return _entities[entity.Id];
+        return _entityContexts[entity.Id];
     }
 
     public IEnumerable<TComponent> Query<TComponent>() 

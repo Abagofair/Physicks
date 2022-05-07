@@ -3,8 +3,8 @@
 public class SpringConnector
 {
     public SpringConnector(
-        PhysicsObject startAnchor,
-        PhysicsObject endAnchor,
+        PhysicsComponent startAnchor,
+        PhysicsComponent endAnchor,
         float length,
         float springFactor)
     {
@@ -14,8 +14,8 @@ public class SpringConnector
         Length = length;
     }
 
-    public PhysicsObject StartAnchor { get; set; }
-    public PhysicsObject EndAnchor { get; set; }
+    public PhysicsComponent StartAnchor { get; set; }
+    public PhysicsComponent EndAnchor { get; set; }
     public float SpringFactor { get; set; }
     public float Length { get; set; }
 }

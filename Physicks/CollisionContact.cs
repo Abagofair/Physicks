@@ -5,8 +5,8 @@ namespace Physicks;
 public class CollisionContact
 {
     public CollisionContact(
-        PhysicsObject a,
-        PhysicsObject b,
+        PhysicsComponent a,
+        PhysicsComponent b,
         Vector2 startPosition,
         Vector2 endPosition,
         Vector2 normal,
@@ -20,8 +20,8 @@ public class CollisionContact
         Depth = depth;
     }
 
-    public PhysicsObject A { get; }
-    public PhysicsObject B { get; }
+    public PhysicsComponent A { get; }
+    public PhysicsComponent B { get; }
     public Vector2 StartPosition { get; }
     public Vector2 EndPosition { get; }
     public Vector2 Normal { get; }
@@ -61,7 +61,7 @@ public class CollisionContact
         B.ApplyImpulse(-impulse);
     }
 
-    public static CollisionContact FromCircleCircleCollision(PhysicsObject a, PhysicsObject b)
+    public static CollisionContact FromCircleCircleCollision(PhysicsComponent a, PhysicsComponent b)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));

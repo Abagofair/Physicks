@@ -45,7 +45,7 @@ public class World
         }
     }
 
-    public void Update(IEnumerable<PhysicsObject> physicsObjects, float dt)
+    public void Update(IEnumerable<PhysicsComponent> physicsObjects, float dt)
     {
         _accumulator += dt;
 
@@ -58,7 +58,7 @@ public class World
         }
     }
 
-    public void HandleCollisions(IEnumerable<PhysicsObject> physicsObjects)
+    public void HandleCollisions(IEnumerable<PhysicsComponent> physicsObjects)
     {
         var arr = physicsObjects.ToArray();
         for (int i = 0; i < arr.Length - 1; i++)
@@ -76,7 +76,7 @@ public class World
         }
     }
 
-    public static Vector2 CreateDragForce(PhysicsObject physics2DObject, float dragCoeff)
+    public static Vector2 CreateDragForce(PhysicsComponent physics2DObject, float dragCoeff)
     {
         if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
 
@@ -96,7 +96,7 @@ public class World
         return dragForce;
     }
 
-    public static Vector2 CreateFrictionForce(PhysicsObject physics2DObject, float frictionCoeff)
+    public static Vector2 CreateFrictionForce(PhysicsComponent physics2DObject, float frictionCoeff)
     {
         if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
 
@@ -106,8 +106,8 @@ public class World
     public static Vector2 CreateFrictionForce(Vector2 velocity, float frictionCoeff)
         => frictionCoeff * Vector2.Normalize(velocity) * -1.0f;
 
-    public static Vector2 CreateGravitationalForce(PhysicsObject a, 
-        PhysicsObject b, float gravitationalCoeff)
+    public static Vector2 CreateGravitationalForce(PhysicsComponent a, 
+        PhysicsComponent b, float gravitationalCoeff)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
@@ -120,7 +120,7 @@ public class World
         return Vector2.Normalize(distanceBA) * attrMag;
     }
 
-    public static Vector2 CreateSpringForce(PhysicsObject physics2DObject, Vector2 anchor, float restLength, float k)
+    public static Vector2 CreateSpringForce(PhysicsComponent physics2DObject, Vector2 anchor, float restLength, float k)
     {
         if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
 
@@ -140,15 +140,15 @@ public class World
     public double TransformToWorldUnit(double t) => t * PixelsPerMeter;
     public Vector2 TransformToWorldUnit(Vector2 vector2) => vector2 * PixelsPerMeter;
 
-    public void HandleWorldBounds(PhysicsObject physicsObject)
+    public void HandleWorldBounds(PhysicsComponent physicsObject)
     {
         if (TryHandleCircleWorldBoundsCollision(physicsObject))
             return;
     }
 
-    private void IntegrateObjects(IEnumerable<PhysicsObject> physicsObjects, float dt)
+    private void IntegrateObjects(IEnumerable<PhysicsComponent> physicsObjects, float dt)
     {
-        foreach (PhysicsObject physicsObject in physicsObjects)
+        foreach (PhysicsComponent physicsObject in physicsObjects)
         {
             if (!physicsObject.IsKinematic)
             {
@@ -161,7 +161,7 @@ public class World
         }
     }
 
-    private bool TryHandleCircleWorldBoundsCollision(PhysicsObject physicsObject)
+    private bool TryHandleCircleWorldBoundsCollision(PhysicsComponent physicsObject)
     {
         //todo handle origin
         if (physicsObject?.Collideable is CircleCollideable circleCollideable)

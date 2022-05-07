@@ -1,19 +1,28 @@
 ﻿using System.Numerics;
+using System.Text.Json.Serialization;
 
 namespace Physicks;
 
-public class PhysicsObject
+[Serializable]
+public class PhysicsComponent
 {
+    [JsonInclude]
     public bool IsKinematic { get; set; }
-    public Vector2 ForceSum { get; set; }
+
+    [JsonInclude]
     public Vector2 Position { get; set; }
-    public Vector2 Velocity { get; set; }
-    public Vector2 Acceleration { get; set; }
-    public float TorqueSum { get; set; }
+
+    [JsonInclude]
     public float Rotation { get; set; }
-    public float AngularVelocity { get; set; }
-    public float AngularAcceleration { get; set; }
+
+    [JsonInclude]
+    public float Restitution { get; set; } = 1.0f;
+
+    [JsonInclude]
+    public IShape? Shape { get; set; }
+
     private float _mass = 1.0f;
+    [JsonInclude]
     public float Mass
     {
         get => _mass;
@@ -31,14 +40,29 @@ public class PhysicsObject
             }
         }
     }
-    public float Restitution { get; set; } = 1.0f;
+
+    public Vector2 ForceSum { get; set; }
+
+    public Vector2 Velocity { get; set; }
+
+    public Vector2 Acceleration { get; set; }
+
+    public float TorqueSum { get; set; }
+
+    public float AngularVelocity { get; set; }
+
+    public float AngularAcceleration { get; set; }
+
     public float InverseMass { get; private set; } = 1.0f;
+
     public ICollideable? Collideable { get; set; }
-    public IShape? Shape { get; set; }
+
     //cache transform
     public Matrix4x4 Transform => Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0.0f));
-    public Vector2 WorldPosition(Vector2 offset) => Vector2.Transform(offset, Transform);
+
+
     public float MomentOfInertia => (Shape?.MomentOfInertia ?? 0.0f) * Mass;
+
     public float InverseMomentOfInertia
     {
         get
@@ -48,6 +72,8 @@ public class PhysicsObject
             return 0.0f;
         }
     }
+
+    public Vector2 WorldPosition(Vector2 offset) => Vector2.Transform(offset, Transform);
 
     //https://gafferongames.com/post/integration_basics/
     public void Integrate(float dt)

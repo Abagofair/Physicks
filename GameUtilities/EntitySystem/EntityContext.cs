@@ -1,4 +1,4 @@
-﻿namespace GameUtilities.Entities;
+﻿namespace GameUtilities.EntitySystem;
 
 public class EntityContext : IEntityContext
 {

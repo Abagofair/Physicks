@@ -1,10 +1,10 @@
 {
-  "Scene": {
-    "Entities": [
-      {
-        "Name": "Box",
-        "Components": {
-          "Physics": {
+  "Entities": [
+    {
+      "Name": "Box",
+      "Components": [
+        {
+          "PhysicsComponent": {
             "IsKinematic": true,
             "Position": {
               "x": 10.0,
@@ -15,11 +15,11 @@
             "Mass": 1.0,
             "BoxShape": {
               "Width": 50.0,
-              "Height":  50.0
+              "Height": 50.0
             }
           }
         }
-      }
-    ]
-  }
+      ]
+    }
+  ]
 }

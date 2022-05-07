@@ -2,11 +2,13 @@
 
 public class FileWatcherService
 {
+    private readonly string _folder;
     private readonly FileSystemWatcher _watcher;
     private Dictionary<string, Watch> _actionsByFileName;
 
     public FileWatcherService(string folderToWatch)
     {
+        _folder = folderToWatch;
         _actionsByFileName = new Dictionary<string, Watch>();
 
         _watcher = new FileSystemWatcher(folderToWatch)
@@ -17,7 +19,7 @@ public class FileWatcherService
         _watcher.Changed += OnChanged;
     }
 
-    public void WatchFile(string fileName, Action onChange)
+    public void WatchFile(string fileName, Action<string> onChange)
     {
         if (string.IsNullOrWhiteSpace(fileName)) throw new ArgumentNullException(nameof(fileName));
         if (onChange == null) throw new ArgumentNullException(nameof(onChange));
@@ -44,7 +46,7 @@ public class FileWatcherService
             {
                 result.executed = true;
                 _actionsByFileName[e.Name] = result;
-                result.action();
+                result.action(Path.Combine(_folder, e.Name));
             }
             else
             {
@@ -57,6 +59,6 @@ public class FileWatcherService
     private struct Watch
     {
         public bool executed;
-        public Action action;
+        public Action<string> action;
     }
 }

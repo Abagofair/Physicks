@@ -5,7 +5,7 @@ namespace Physicks;
 
 public class CollisionDetection
 {
-    public static bool IsColliding(PhysicsObject a, PhysicsObject b, out CollisionContact? collisionContact)
+    public static bool IsColliding(PhysicsComponent a, PhysicsComponent b, out CollisionContact? collisionContact)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
@@ -25,7 +25,7 @@ public class CollisionDetection
         return false;
     }
 
-    public static bool IsCollidingCircleCircle(PhysicsObject a, PhysicsObject b, 
+    public static bool IsCollidingCircleCircle(PhysicsComponent a, PhysicsComponent b, 
         out CollisionContact? collisionContact)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
@@ -52,7 +52,7 @@ public class CollisionDetection
         return false;
     }
 
-    public static float FindMinimumSeparation(PhysicsObject a, PhysicsObject b, out Vector2 axis, out Vector2 point)
+    public static float FindMinimumSeparation(PhysicsComponent a, PhysicsComponent b, out Vector2 axis, out Vector2 point)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
@@ -95,7 +95,7 @@ public class CollisionDetection
         return separation;
     }
 
-    public static bool IsCollidingPolygonPolygon(PhysicsObject a, PhysicsObject b,
+    public static bool IsCollidingPolygonPolygon(PhysicsComponent a, PhysicsComponent b,
         out CollisionContact? collisionContact)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));

@@ -1,4 +1,4 @@
-﻿namespace GameUtilities.Entities.Exceptions;
+﻿namespace GameUtilities.EntitySystem.Exceptions;
 
 public class EntityAllocationException : Exception
 {

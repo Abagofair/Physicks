@@ -12,8 +12,8 @@ public class SpringSystem
     public List<SpringConnector> Connectors { get; private set; }
 
     public void AddConnector(
-        PhysicsObject start,
-        PhysicsObject end,
+        PhysicsComponent start,
+        PhysicsComponent end,
         float length,
         float springFactor)
     {

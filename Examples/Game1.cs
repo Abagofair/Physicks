@@ -1,7 +1,8 @@
-﻿using GameUtilities.Entities;
+﻿using GameUtilities.EntitySystem;
 using GameUtilities.Meshes;
 using GameUtilities.Options;
 using GameUtilities.System;
+using GameUtilities.System.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -11,6 +12,7 @@ using Physicks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace Examples
@@ -35,6 +37,7 @@ namespace Examples
         private GameOptions _gameOptions;
 
         private FileWatcherService _fileWatcherService;
+        private SceneLoader _sceneLoader;
 
         public Game1()
         {
@@ -53,8 +56,9 @@ namespace Examples
 
             _entities = new Entities<EntityContext>(100);
 
+            _sceneLoader = new SceneLoader(typeof(PhysicsComponent));
             _fileWatcherService = new FileWatcherService("Editor");
-            _fileWatcherService.WatchFile("Scene.json", () => Debug.WriteLine("Changed scene.json"));
+            _fileWatcherService.WatchFile("Scene.json", (string fileName) => _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), fileName)));
         }
 
         protected override void Initialize()
@@ -68,7 +72,7 @@ namespace Examples
 
             var boxShapeEntityContext = new EntityContext();
             var boxShape = new BoxShape(50.0f, 50.0f);
-            boxShapeEntityContext.AddOrOverride(new PhysicsObject()
+            boxShapeEntityContext.AddOrOverride(new PhysicsComponent()
             {
                 Position = new System.Numerics.Vector2(600.0f, 120.0f),
                 Shape = boxShape,
@@ -82,7 +86,7 @@ namespace Examples
 
             boxShapeEntityContext = new EntityContext();
             boxShape = new BoxShape(50.0f, 50.0f);
-            boxShapeEntityContext.AddOrOverride(new PhysicsObject()
+            boxShapeEntityContext.AddOrOverride(new PhysicsComponent()
             {
                 Position = new System.Numerics.Vector2(600.0f, 1000.0f),
                 Shape = boxShape,
@@ -154,7 +158,7 @@ namespace Examples
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            _world.HandleCollisions(_entities.Query<PhysicsObject>());
+            _world.HandleCollisions(_entities.Query<PhysicsComponent>());
 
             /*if (_world.TryGetEntity(_boxEntity.Id, out var box))
             {
@@ -165,7 +169,7 @@ namespace Examples
             /*circleContext.Query<PhysicsObject>().Position = new System.Numerics.Vector2(
                 Mouse.GetState().X, Mouse.GetState().Y);*/
 
-            _world.Update(_entities.Query<PhysicsObject>(), (float)gameTime.ElapsedGameTime.TotalSeconds);
+            _world.Update(_entities.Query<PhysicsComponent>(), (float)gameTime.ElapsedGameTime.TotalSeconds);
             
             base.Update(gameTime);
         }
@@ -174,7 +178,7 @@ namespace Examples
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            foreach ((Renderable renderable, PhysicsObject physicsObject) in _entities.Query<Renderable, PhysicsObject>())
+            foreach ((Renderable renderable, PhysicsComponent physicsObject) in _entities.Query<Renderable, PhysicsComponent>())
             {
                 _debugSpriteRenderer.Draw(renderable, physicsObject.Transform.ToXnaMatrix4x4());
 
