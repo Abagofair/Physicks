@@ -2,9 +2,10 @@
 
 namespace MonoGameUtilities.Rendering;
 
-public class Renderable
+public class RenderableSpriteComponent
 {
-    public Renderable(GraphicsDevice graphicsDevice,
+    public RenderableSpriteComponent(
+        GraphicsDevice graphicsDevice,
         Vertex[] vertices)
     {
         Vertices = vertices ?? throw new ArgumentNullException(nameof(vertices));
@@ -18,7 +19,7 @@ public class Renderable
         VertexBuffer.SetData(0, vertices, 0, Vertices.Length, Vertex.VertexDeclaration.VertexStride);
     }
 
-    public bool Draw { get; set; } = true;
-    public Vertex[] Vertices { get; private set; } //maybe not necessary to keep in memory?
-    public VertexBuffer VertexBuffer { get; private set; }
+    public bool IsDrawable { get; set; } = true;
+    public Vertex[] Vertices { get; } //maybe not necessary to keep in memory?
+    public VertexBuffer VertexBuffer { get; }
 }

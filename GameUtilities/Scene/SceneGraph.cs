@@ -4,20 +4,17 @@ namespace GameUtilities.Scene;
 
 public class SceneGraph
 {
-    private Entities<EntityContext> _entityContexts;
+    public Entities<EntityContext> Entities { get; }
 
     public SceneGraph()
     {
-        _entityContexts = new Entities<EntityContext>(100);
+        Entities = new Entities<EntityContext>(100);
     }
 
-    public void CreateEntities(EntityContext[] entityContexts)
+    public void AddEntity(EntityContext entityContext)
     {
-        if (entityContexts == null) throw new ArgumentNullException(nameof(entityContexts));
+        if (entityContext == null) throw new ArgumentNullException(nameof(entityContext));
 
-        foreach (EntityContext entityContext in entityContexts)
-        {
-            _entityContexts.CreateEntity(entityContext);
-        }
+        Entities.CreateEntity(entityContext);
     }
 }

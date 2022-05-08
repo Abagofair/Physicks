@@ -1,7 +1,9 @@
 ﻿using System.Numerics;
+using System.Text.Json.Serialization;
 
 namespace Physicks;
 
+[Serializable]
 public class BoxShape : PolygonShape
 {
     public BoxShape(float width, float height)
@@ -18,7 +20,11 @@ public class BoxShape : PolygonShape
         };
     }
 
+    [JsonInclude]
     public float Width { get; }
+
+    [JsonInclude]
     public float Height { get; }
+
     public override float MomentOfInertia => 0.083333f * Width * Width * Height * Height;
 }

@@ -14,7 +14,7 @@ public class DebugSpriteRenderer : IRenderer
         _spriteEffect = new SpriteEffect(graphicsDevice);
     }
 
-    public void Draw(Renderable renderable, Matrix? transform = null)
+    public void Draw(RenderableSpriteComponent renderable, Matrix? transform = null)
     {
         if (renderable == null) return;
         if (transform == null) transform = Matrix.Identity;

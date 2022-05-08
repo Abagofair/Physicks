@@ -15,6 +15,11 @@ public class EntityContext : IEntityContext
         _componentByType[typeof(TComponent)] = component;
     }
 
+    public void AddOrOverride(Type componentType, object component)
+    {
+        _componentByType[componentType] = component;
+    }
+
     public TComponent? Query<TComponent>()
         where TComponent : class
     {

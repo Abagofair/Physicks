@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using GameUtilities.EntitySystem;
 using GameUtilities.Scene;
+using GameUtilities.System.Serialization.ComponentParsers;
 
 namespace GameUtilities.System.Serialization;
 
@@ -15,14 +15,14 @@ public class SceneLoader
         CommentHandling = JsonCommentHandling.Skip
     };
 
-    private readonly Dictionary<string, Type> _typesByComponentName;
+    private readonly Dictionary<string, IComponentParser> _componentParsers;
 
-    public SceneLoader(params Type[] componentTypes)
+    public SceneLoader(params IComponentParser[] componentTypes)
     {
-        _typesByComponentName = new Dictionary<string, Type>();
-        foreach (var componentType in componentTypes)
+        _componentParsers = new Dictionary<string, IComponentParser>();
+        foreach (IComponentParser componentParser in componentTypes)
         {
-            _typesByComponentName.TryAdd(componentType.Name, componentType);
+            _componentParsers.TryAdd(componentParser.ComponentType.Name, componentParser);
         }
     }
 
@@ -31,76 +31,69 @@ public class SceneLoader
         if (string.IsNullOrWhiteSpace(fileName)) throw new ArgumentNullException(nameof(fileName));
         if (!File.Exists(fileName)) throw new ArgumentException(nameof(fileName));
 
-        using var fileStream = File.OpenRead(fileName);
-
-        var count = 0;
-        using var memoryStream = new MemoryStream();
-        while (fileStream.Position < fileStream.Length)
-        {
-            var buffer = new byte[4096];
-            fileStream.Read(buffer, 0, buffer.Length);
-            memoryStream.Write(buffer, count, buffer.Length);
-            count += 4096;
-        }
-
-        var jsonReader = new Utf8JsonReader(memoryStream.GetBuffer(), _options);
+        var sceneGraph = new SceneGraph();
+        var jsonReader = new Utf8JsonReader(File.ReadAllBytes(fileName), _options);
         while (jsonReader.Read())
         {
             switch (jsonReader.TokenType)
             {
+                case JsonTokenType.StartObject:
+                    continue;
+                case JsonTokenType.EndObject:
+                    continue;
                 case JsonTokenType.PropertyName:
-                {
-                    var name = jsonReader.GetString();
-                    jsonReader.Read();
-                    if (name == EntitiesPropertyName && jsonReader.TokenType == JsonTokenType.StartArray)
                     {
-                        ParseEntity(ref jsonReader);
+                        var name = jsonReader.GetString();
+                        jsonReader.Read();
+                        if (name == EntitiesPropertyName)
+                        {
+                            sceneGraph.AddEntity(ParseEntity(ref jsonReader));
+                        }
+                        break;
                     }
-                    break;
-                }
             }
         }
 
-        return new SceneGraph();
+        return sceneGraph;
     }
 
-    private void ParseEntity(ref Utf8JsonReader jsonReader)
+    private EntityContext ParseEntity(ref Utf8JsonReader jsonReader)
     {
         jsonReader.Read();
         jsonReader.Read();
         jsonReader.Read();
-        string? entityName = jsonReader.GetString();
 
+        string? entityName = jsonReader.GetString();
         jsonReader.Read();
 
         string? componentsPropertyName = jsonReader.GetString();
         jsonReader.Read();
 
+        var entityContext = new EntityContext();
+
         if (componentsPropertyName == "Components" && jsonReader.TokenType == JsonTokenType.StartArray)
         {
-            ParseComponent(ref jsonReader);
+            var parseResult = ParseComponent(ref jsonReader);
+            if (parseResult?.Succeeded == true)
+            {
+                entityContext.AddOrOverride(parseResult.ComponentType, parseResult.Component);
+            }
         }
+
+        return entityContext;
     }
 
-    private void ParseComponent(ref Utf8JsonReader jsonReader)
+    private ParseResult? ParseComponent(ref Utf8JsonReader jsonReader)
     {
-        //todo: somehow loop over the remaining component objects and properties and correctly map that to a type in the component type map
         jsonReader.Read();
         jsonReader.Read();
         string componentName = jsonReader.GetString() ?? string.Empty;
 
-        if (_typesByComponentName.TryGetValue(componentName, out var type))
+        if (_componentParsers.TryGetValue(componentName, out IComponentParser componentParser))
         {
-            var component = Activator.CreateInstance(type);
-            if (component == null)
-                return;
-
-            IEnumerable<PropertyInfo> serializableProperties = component
-                .GetType()
-                .GetProperties()
-                .Where(x => x.CustomAttributes.Any(a => a.AttributeType == typeof(JsonIncludeAttribute)));
-
-
+            return componentParser.Parse(ref jsonReader);
         }
+
+        return null;
     }
 }

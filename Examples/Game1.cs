@@ -1,19 +1,19 @@
 ﻿using GameUtilities.EntitySystem;
-using GameUtilities.Meshes;
 using GameUtilities.Options;
+using GameUtilities.Scene;
 using GameUtilities.System;
 using GameUtilities.System.Serialization;
+using GameUtilities.System.Serialization.ComponentParsers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGameUtilities;
 using MonoGameUtilities.Rendering;
+using MonoGameUtilities.Serialization;
 using Physicks;
+using Physicks.Serialization;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
 namespace Examples
 {
@@ -38,6 +38,7 @@ namespace Examples
 
         private FileWatcherService _fileWatcherService;
         private SceneLoader _sceneLoader;
+        private SceneGraph _sceneGraph;
 
         public Game1()
         {
@@ -56,9 +57,22 @@ namespace Examples
 
             _entities = new Entities<EntityContext>(100);
 
-            _sceneLoader = new SceneLoader(typeof(PhysicsComponent));
+            _sceneLoader = new SceneLoader(
+                new IComponentParser[] 
+                { 
+                    new PhysicsComponentParser(),
+                    new RenderableQuadComponentParser()
+                });
+
+            _sceneGraph = new SceneGraph();
+
             _fileWatcherService = new FileWatcherService("Editor");
-            _fileWatcherService.WatchFile("Scene.json", (string fileName) => _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), fileName)));
+            _fileWatcherService.WatchFile("Scene.json",
+                (string fileName) =>
+                {
+                    _sceneGraph = _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), fileName));
+                    _sceneGraph.SetupBuffers(_graphics.GraphicsDevice);
+                });
         }
 
         protected override void Initialize()
@@ -70,7 +84,7 @@ namespace Examples
             _graphics.IsFullScreen = _gameOptions.Graphics.Display.Fullscreen;
             _graphics.ApplyChanges();
 
-            var boxShapeEntityContext = new EntityContext();
+            /*var boxShapeEntityContext = new EntityContext();
             var boxShape = new BoxShape(50.0f, 50.0f);
             boxShapeEntityContext.AddOrOverride(new PhysicsComponent()
             {
@@ -95,7 +109,7 @@ namespace Examples
             });
             t = MeshHelpers.Delaunay_BowyerWatson(boxShape.Vertices);
             boxShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
-            _boxEntity1 = _entities.CreateEntity(boxShapeEntityContext);
+            _boxEntity1 = _entities.CreateEntity(boxShapeEntityContext);*/
 
             /*var circleShapeEntityContext = new EntityContext();
             var circleShape = new CircleShape(50.0f);
@@ -178,7 +192,7 @@ namespace Examples
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            foreach ((Renderable renderable, PhysicsComponent physicsObject) in _entities.Query<Renderable, PhysicsComponent>())
+            foreach ((RenderableSpriteComponent renderable, PhysicsComponent physicsObject) in _sceneGraph.Entities.Query<RenderableSpriteComponent, PhysicsComponent>())
             {
                 _debugSpriteRenderer.Draw(renderable, physicsObject.Transform.ToXnaMatrix4x4());
 
