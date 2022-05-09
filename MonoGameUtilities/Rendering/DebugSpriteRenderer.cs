@@ -14,19 +14,25 @@ public class DebugSpriteRenderer : IRenderer
         _spriteEffect = new SpriteEffect(graphicsDevice);
     }
 
-    public void Draw(RenderableSpriteComponent renderable, Matrix? transform = null)
+    public void Draw(RenderableQuadComponent renderable, Matrix? transform = null)
     {
         if (renderable == null) return;
+        if (!renderable.IsSetup) return;
         if (transform == null) transform = Matrix.Identity;
 
         SetRenderState();
 
         _graphicsDevice.SetVertexBuffer(renderable.VertexBuffer);
-
+        _graphicsDevice.Indices = renderable.IndexBuffer;
         _spriteEffect.TransformMatrix = transform;
-        _spriteEffect.CurrentTechnique.Passes[0].Apply();
 
-        _graphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, renderable.Vertices.Length / 3);
+        foreach (var item in _spriteEffect.CurrentTechnique.Passes)
+        {
+            item.Apply();
+            _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+            //_graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, RenderPrimitives.QuadVertices, 0, 1, Vertex.VertexDeclaration);
+        }
+
         //_graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, 1, new VertexDeclaration(
         //        new VertexElement(0, VertexElementFormat.Vector2, VertexElementUsage.Position, 0)));
     }
@@ -35,7 +41,14 @@ public class DebugSpriteRenderer : IRenderer
     {
         _graphicsDevice.RasterizerState = new RasterizerState()
         {
-            FillMode = FillMode.WireFrame
+            FillMode = FillMode.Solid,
+            CullMode = CullMode.CullClockwiseFace
         };
+
+       // _graphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+
+        //_graphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+        //_graphicsDevice.BlendState = BlendState.Opaque;
     }
 }

@@ -73,10 +73,27 @@ public class SceneLoader
 
         if (componentsPropertyName == "Components" && jsonReader.TokenType == JsonTokenType.StartArray)
         {
-            var parseResult = ParseComponent(ref jsonReader);
-            if (parseResult?.Succeeded == true)
+            //todo need to handle finishing an entire component at EndObject
+            //or just find a better way to parse an object
+            while (jsonReader.Read() && jsonReader.TokenType != JsonTokenType.EndArray)
             {
-                entityContext.AddOrOverride(parseResult.ComponentType, parseResult.Component);
+                switch (jsonReader.TokenType)
+                {
+                    case JsonTokenType.StartObject:
+                        {
+                            var parseResult = ParseComponent(ref jsonReader);
+                            if (parseResult?.Succeeded == true)
+                            {
+                                entityContext.AddOrOverride(parseResult.ComponentType, parseResult.Component);
+                            }
+
+                            break;
+                        }
+                    case JsonTokenType.EndObject:
+                        {
+                            break;
+                        }
+                }
             }
         }
 
@@ -86,8 +103,8 @@ public class SceneLoader
     private ParseResult? ParseComponent(ref Utf8JsonReader jsonReader)
     {
         jsonReader.Read();
-        jsonReader.Read();
         string componentName = jsonReader.GetString() ?? string.Empty;
+        jsonReader.Read();
 
         if (_componentParsers.TryGetValue(componentName, out IComponentParser componentParser))
         {

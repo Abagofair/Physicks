@@ -5,9 +5,12 @@ namespace MonoGameUtilities.Rendering;
 
 public class RenderableQuadComponent : IRenderable
 {
+    private bool _isSetup;
 
     [JsonInclude]
     public bool IsDrawable { get; set; } = true;
+
+    public bool IsSetup => _isSetup;
 
     public VertexBuffer? VertexBuffer { get; private set; }
 
@@ -19,22 +22,24 @@ public class RenderableQuadComponent : IRenderable
             graphicsDevice,
             Vertex.VertexDeclaration,
             RenderPrimitives.QuadVertices.Length,
-            BufferUsage.None);
+            BufferUsage.WriteOnly);
 
-        VertexBuffer.SetData(
+        /*VertexBuffer.SetData(
             0,
             RenderPrimitives.QuadVertices,
             0,
             RenderPrimitives.QuadVertices.Length,
-            Vertex.VertexDeclaration.VertexStride);
+            Vertex.VertexDeclaration.VertexStride);*/
+        VertexBuffer.SetData(RenderPrimitives.QuadVertices);
 
         IndexBuffer = new IndexBuffer(
             graphicsDevice,
-            IndexElementSize.ThirtyTwoBits,
+            IndexElementSize.SixteenBits,
             RenderPrimitives.QuadIndices.Length,
-            BufferUsage.None);
+            BufferUsage.WriteOnly);
 
-        IndexBuffer.SetData(
-            RenderPrimitives.QuadIndices);
+        IndexBuffer.SetData(RenderPrimitives.QuadIndices);
+
+        _isSetup = true;
     }
 }

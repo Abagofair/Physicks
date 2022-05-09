@@ -14,7 +14,7 @@ public class SpriteRenderer : IRenderer
         _spriteEffect = new SpriteEffect(graphicsDevice);
     }
 
-    public void Draw(RenderableSpriteComponent renderable, Matrix? transform)
+    public void Draw(RenderableQuadComponent renderable, Matrix? transform)
     {
         if (renderable == null) return;
         if (transform == null) transform = Matrix.Identity;
@@ -26,7 +26,7 @@ public class SpriteRenderer : IRenderer
         _spriteEffect.TransformMatrix = transform;
         _spriteEffect.CurrentTechnique.Passes[0].Apply();
 
-        _graphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, renderable.Vertices.Length / 3);
+        _graphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 2);
     }
 
     private void SetRenderState()

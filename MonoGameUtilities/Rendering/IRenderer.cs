@@ -3,5 +3,5 @@
 namespace MonoGameUtilities.Rendering;
 public interface IRenderer
 {
-    void Draw(RenderableSpriteComponent renderable, Matrix? transform = null);
+    void Draw(RenderableQuadComponent renderable, Matrix? transform = null);
 }

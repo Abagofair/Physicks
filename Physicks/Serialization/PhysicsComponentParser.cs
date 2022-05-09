@@ -1,4 +1,5 @@
-﻿using GameUtilities.System.Serialization.ComponentParsers;
+﻿using System.Numerics;
+using GameUtilities.System.Serialization.ComponentParsers;
 using GameUtilities.System.Serialization.PropertyParsers;
 
 namespace Physicks.Serialization;
@@ -11,7 +12,7 @@ public class PhysicsComponentParser : ComponentParser
         {
             { typeof(float), new FloatPropertyParser() },
             { typeof(bool), new BoolPropertyParser() },
-            { typeof(Vector2PropertyParser), new Vector2PropertyParser() }
+            { typeof(Vector2), new Vector2PropertyParser() }
         };
     }
 

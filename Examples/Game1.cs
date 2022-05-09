@@ -65,14 +65,6 @@ namespace Examples
                 });
 
             _sceneGraph = new SceneGraph();
-
-            _fileWatcherService = new FileWatcherService("Editor");
-            _fileWatcherService.WatchFile("Scene.json",
-                (string fileName) =>
-                {
-                    _sceneGraph = _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), fileName));
-                    _sceneGraph.SetupBuffers(_graphics.GraphicsDevice);
-                });
         }
 
         protected override void Initialize()
@@ -83,6 +75,14 @@ namespace Examples
             _graphics.PreferredBackBufferWidth = _gameOptions.Graphics.Display.Width;
             _graphics.IsFullScreen = _gameOptions.Graphics.Display.Fullscreen;
             _graphics.ApplyChanges();
+
+            _fileWatcherService = new FileWatcherService("Editor");
+            _fileWatcherService.WatchFile("Scene.json",
+                (string fileName) =>
+                {
+                    _sceneGraph = _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), fileName));
+                    _sceneGraph.SetupBuffers(GraphicsDevice);
+                });
 
             /*var boxShapeEntityContext = new EntityContext();
             var boxShape = new BoxShape(50.0f, 50.0f);
@@ -172,7 +172,7 @@ namespace Examples
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            _world.HandleCollisions(_entities.Query<PhysicsComponent>());
+            _world.HandleCollisions(_sceneGraph.Entities.Query<PhysicsComponent>());
 
             /*if (_world.TryGetEntity(_boxEntity.Id, out var box))
             {
@@ -183,7 +183,7 @@ namespace Examples
             /*circleContext.Query<PhysicsObject>().Position = new System.Numerics.Vector2(
                 Mouse.GetState().X, Mouse.GetState().Y);*/
 
-            _world.Update(_entities.Query<PhysicsComponent>(), (float)gameTime.ElapsedGameTime.TotalSeconds);
+            _world.Update(_sceneGraph.Entities.Query<PhysicsComponent>(), (float)gameTime.ElapsedGameTime.TotalSeconds);
             
             base.Update(gameTime);
         }
@@ -192,9 +192,9 @@ namespace Examples
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            foreach ((RenderableSpriteComponent renderable, PhysicsComponent physicsObject) in _sceneGraph.Entities.Query<RenderableSpriteComponent, PhysicsComponent>())
+            foreach ((RenderableQuadComponent renderable, PhysicsComponent physicsObject) in _sceneGraph.Entities.Query<RenderableQuadComponent, PhysicsComponent>())
             {
-                _debugSpriteRenderer.Draw(renderable, physicsObject.Transform.ToXnaMatrix4x4());
+                _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(100.0f) * physicsObject.Transform.ToXnaMatrix4x4());
 
                 //_spriteBatch.Begin(transformMatrix: physicsObject.Transform.ToXnaMatrix4x4());
                 //foreach (var item in (renderable.Vertices))
