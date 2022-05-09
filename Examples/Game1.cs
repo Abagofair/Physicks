@@ -165,6 +165,9 @@ namespace Examples
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _debugSpriteRenderer = new DebugSpriteRenderer(GraphicsDevice);
+
+            _sceneGraph = _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), ".//Editor//Scene.json"));
+            _sceneGraph.SetupBuffers(GraphicsDevice);
         }
 
         protected override void Update(GameTime gameTime)

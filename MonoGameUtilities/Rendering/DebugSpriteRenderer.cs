@@ -41,7 +41,7 @@ public class DebugSpriteRenderer : IRenderer
     {
         _graphicsDevice.RasterizerState = new RasterizerState()
         {
-            FillMode = FillMode.Solid,
+            FillMode = FillMode.WireFrame,
             CullMode = CullMode.CullClockwiseFace
         };
 

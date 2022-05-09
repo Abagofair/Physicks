@@ -45,9 +45,10 @@ public class SceneLoader
                     {
                         var name = jsonReader.GetString();
                         jsonReader.Read();
+
                         if (name == EntitiesPropertyName)
                         {
-                            sceneGraph.AddEntity(ParseEntity(ref jsonReader));
+                            sceneGraph.AddEntities(ParseEntities(ref jsonReader));
                         }
                         break;
                     }
@@ -57,10 +58,45 @@ public class SceneLoader
         return sceneGraph;
     }
 
+    private List<EntityContext> ParseEntities(ref Utf8JsonReader jsonReader)
+    {
+        if (jsonReader.TokenType != JsonTokenType.StartArray)
+            throw new SerializationException(@$"Expected JsonTokenType.StartArray got JsonTokenType.{jsonReader.TokenType}");
+
+        var list = new List<EntityContext>();
+
+        var stack = new Stack<JsonTokenType>();
+        stack.Push(JsonTokenType.StartObject);
+
+        //todo need to handle finishing an entire component at EndObject
+        //or just find a better way to parse an object
+        while (jsonReader.Read() && stack.Count > 0)
+        {
+            switch (jsonReader.TokenType)
+            {
+                case JsonTokenType.StartObject:
+                    {
+                        stack.Push(JsonTokenType.StartObject);
+                        break;
+                    }
+                case JsonTokenType.EndObject:
+                    {
+                        stack.Pop();
+                        break;
+                    }
+                case JsonTokenType.PropertyName:
+                    {
+                        list.Add(ParseEntity(ref jsonReader));
+                        break;
+                    }
+            }
+        }
+
+        return list;
+    }
+
     private EntityContext ParseEntity(ref Utf8JsonReader jsonReader)
     {
-        jsonReader.Read();
-        jsonReader.Read();
         jsonReader.Read();
 
         string? entityName = jsonReader.GetString();

@@ -12,7 +12,59 @@
             },
             "Rotation": 0.0,
             "Restitution": 1.0,
-            "Mass": 1.0,
+            "Mass": 0.2,
+            "BoxShape": {
+              "Width": 50.0,
+              "Height": 50.0
+            }
+          }
+        },
+        {
+          "RenderableQuadComponent": {
+            "IsDrawable": true
+          }
+        }
+      ]
+    },
+    {
+      "Name": "AnotherBox",
+      "Components": [
+        {
+          "PhysicsComponent": {
+            "IsKinematic": false,
+            "Position": {
+              "x": 700.0,
+              "y": 300.0
+            },
+            "Rotation": 0.0,
+            "Restitution": 1.0,
+            "Mass": 5.0,
+            "BoxShape": {
+              "Width": 50.0,
+              "Height": 50.0
+            }
+          }
+        },
+        {
+          "RenderableQuadComponent": {
+            "IsDrawable": true
+          }
+        }
+      ]
+    },
+    {
+      "Name": "AnotherAnotherBox",
+      "Components": [
+        {
+          "PhysicsComponent": {
+            "IsKinematic": false,
+            "Position": {
+              "x": 900.0,
+              "y": 300.0
+            },
+            "Rotation": 0.0,
+            "Restitution": 1.0,
+            "Mass": 10.0,
             "BoxShape": {
               "Width": 50.0,
               "Height": 50.0

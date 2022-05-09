@@ -17,4 +17,14 @@ public class SceneGraph
 
         Entities.CreateEntity(entityContext);
     }
+
+    public void AddEntities(IEnumerable<EntityContext> entityContexts)
+    {
+        if (entityContexts == null) throw new ArgumentNullException(nameof(entityContexts));
+
+        foreach (EntityContext entity in entityContexts)
+        {
+            AddEntity(entity);
+        }
+    }
 }
