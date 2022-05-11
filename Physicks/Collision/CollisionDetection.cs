@@ -1,32 +1,10 @@
 ﻿using System.Numerics;
-using GameUtilities;
 
-namespace Physicks;
+namespace Physicks.Collision;
 
 public class CollisionDetection
 {
-    public static bool IsColliding(PhysicsComponent a, PhysicsComponent b, out CollisionContact? collisionContact)
-    {
-        if (a == null) throw new ArgumentNullException(nameof(a));
-        if (b == null) throw new ArgumentNullException(nameof(b));
-
-        collisionContact = null;
-
-        //todo: fix this casting bullshit
-        if (a.Shape is CircleShape && b.Shape is CircleShape)
-        {
-            return IsCollidingCircleCircle(a, b, out collisionContact);
-        }
-        if (a.Shape is PolygonShape && b.Shape is PolygonShape)
-        {
-            return IsCollidingPolygonPolygon(a, b, out collisionContact);
-        }
-
-        return false;
-    }
-
-    public static bool IsCollidingCircleCircle(PhysicsComponent a, PhysicsComponent b, 
-        out CollisionContact? collisionContact)
+    public static bool IsCollidingCircleCircle(ICollideable a, ICollideable b, out CollisionContact? collisionContact)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
@@ -36,8 +14,7 @@ public class CollisionDetection
         CircleShape? aAsCircle = a.Shape as CircleShape;
         CircleShape? bAsCircle = b.Shape as CircleShape;
 
-        if (aAsCircle == null) throw new InvalidCastException(nameof(a));
-        if (bAsCircle == null) throw new InvalidCastException(nameof(b));
+        if (aAsCircle == null || bAsCircle == null) return false;
 
         float radiusSum = aAsCircle.Radius + bAsCircle.Radius;
 
@@ -45,14 +22,25 @@ public class CollisionDetection
 
         if (isColliding)
         {
-            collisionContact = CollisionContact.FromCircleCircleCollision(a, b);
+            Vector2 aToB = b.Position - a.Position;
+            Vector2 normal = Vector2.Normalize(aToB);
+            Vector2 start = b.Position - normal * bAsCircle.Radius;
+            Vector2 end = a.Position + normal * aAsCircle.Radius;
+            float depth = Vector2.Distance(end, start);
+
+            collisionContact = new CollisionContact(
+                start,
+                end,
+                normal,
+                depth);
+
             return true;
         }
 
         return false;
     }
 
-    public static float FindMinimumSeparation(PhysicsComponent a, PhysicsComponent b, out Vector2 axis, out Vector2 point)
+    public static float FindMinimumSeparation(ICollideable a, ICollideable b, out Vector2 axis, out Vector2 point)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
@@ -71,7 +59,8 @@ public class CollisionDetection
         {
             var va1 = a.WorldPosition(polygonA.Vertices[i]);
             var vb1 = a.WorldPosition(polygonA.Vertices[(i + 1) % polygonA.Vertices.Length]);
-            var normal = (vb1 - va1).Normal();
+            var ba = (vb1 - va1);
+            var normal = Vector2.Normalize(new Vector2(ba.Y, -ba.X));
 
             float minimumSeparation = float.MaxValue;
             Vector2 minimumVertex = Vector2.Zero;
@@ -95,8 +84,7 @@ public class CollisionDetection
         return separation;
     }
 
-    public static bool IsCollidingPolygonPolygon(PhysicsComponent a, PhysicsComponent b,
-        out CollisionContact? collisionContact)
+    public static bool IsCollidingPolygonPolygon(ICollideable a, ICollideable b, out CollisionContact? collisionContact)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
@@ -106,13 +94,11 @@ public class CollisionDetection
         PolygonShape? polygonA = a.Shape as PolygonShape;
         PolygonShape? polygonB = b.Shape as PolygonShape;
 
-        if (polygonA == null) throw new InvalidCastException(nameof(a));
-        if (polygonB == null) throw new InvalidCastException(nameof(b));
+        if (polygonA == null || polygonB == null) return false;
 
         float minSepAB = FindMinimumSeparation(a, b, out Vector2 axisAB, out Vector2 pointAB);
         if (minSepAB >= 0.0f)
         {
-
             return false;
         }
 
@@ -124,10 +110,8 @@ public class CollisionDetection
 
         if (minSepAB > minSepBA)
         {
-            Vector2 normal = axisAB.Normal();
+            Vector2 normal = Vector2.Normalize(new Vector2(axisAB.Y, -axisAB.X));
             collisionContact = new CollisionContact(
-                a,
-                b,
                 pointAB,
                 pointAB + normal * minSepAB,
                 normal,
@@ -135,10 +119,8 @@ public class CollisionDetection
         }
         else
         {
-            Vector2 normal = axisBA.Normal();
+            Vector2 normal = Vector2.Normalize(new Vector2(axisBA.Y, -axisBA.X));
             collisionContact = new CollisionContact(
-                a,
-                b,
                 pointBA,
                 pointBA - normal * minSepBA,
                 -normal,

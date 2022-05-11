@@ -8,6 +8,7 @@ namespace GameUtilities.System.Serialization;
 public class SceneLoader
 {
     private readonly static string EntitiesPropertyName = "Entities";
+    private static int EntityCount = 0;
 
     private JsonReaderOptions _options = new JsonReaderOptions()
     {
@@ -105,7 +106,7 @@ public class SceneLoader
         string? componentsPropertyName = jsonReader.GetString();
         jsonReader.Read();
 
-        var entityContext = new EntityContext();
+        var entityContext = new EntityContext(entityName ?? $"Entity_{EntityCount++}");
 
         if (componentsPropertyName == "Components" && jsonReader.TokenType == JsonTokenType.StartArray)
         {
@@ -120,7 +121,9 @@ public class SceneLoader
                             var parseResult = ParseComponent(ref jsonReader);
                             if (parseResult?.Succeeded == true)
                             {
-                                entityContext.AddOrOverride(parseResult.ComponentType, parseResult.Component);
+                                entityContext.AddOrOverride(
+                                    parseResult.ComponentType,
+                                    parseResult.Component);
                             }
 
                             break;

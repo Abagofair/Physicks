@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
 
-namespace Physicks;
+namespace Physicks.Collision;
 
 [Serializable]
 public class BoxShape : PolygonShape

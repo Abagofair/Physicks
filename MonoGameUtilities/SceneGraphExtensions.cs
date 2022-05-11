@@ -10,7 +10,7 @@ public static class SceneGraphExtensions
     {
         if (sceneGraph == null) throw new ArgumentNullException(nameof(sceneGraph));
 
-        foreach (RenderableQuadComponent renderable in sceneGraph.Entities.Query<RenderableQuadComponent>())
+        foreach (RenderableQuad renderable in sceneGraph.Entities.Query<RenderableQuad>())
         {
             renderable.SetupBuffers(graphicsDevice);
         }

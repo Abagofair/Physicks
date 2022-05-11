@@ -1,7 +1,7 @@
-using GameUtilities.Triangulation;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using GameUtilities.Triangulation;
 using Xunit;
 
 namespace Tests

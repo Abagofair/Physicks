@@ -86,10 +86,10 @@ public class Triangle : IEquatable<Triangle>
 
     public bool Equals(Triangle? other)
     {
-        if (other == null) 
+        if (other == null)
             return false;
 
-        if (ReferenceEquals(this, other)) 
+        if (ReferenceEquals(this, other))
             return true;
 
         //first combination
@@ -121,9 +121,9 @@ public class Triangle : IEquatable<Triangle>
 
     public override string ToString() => $"Edge A: {A.A.Position}, Edge B: {B.A.Position}, Edge C: {C.A.Position}";
 
-    public override int GetHashCode() => HashCode.Combine(A, B, C) ^ 
-                                         HashCode.Combine(C, A, B) ^ 
-                                         HashCode.Combine(B, C, A) ^ 
+    public override int GetHashCode() => HashCode.Combine(A, B, C) ^
+                                         HashCode.Combine(C, A, B) ^
+                                         HashCode.Combine(B, C, A) ^
                                          HashCode.Combine(B, A, C) ^
                                          HashCode.Combine(C, B, A) ^
                                          HashCode.Combine(A, C, B);

@@ -13,7 +13,7 @@ public class Vertex : IEquatable<Vertex>
 
     public bool Equals(Vertex? other)
     {
-        if (other == null) 
+        if (other == null)
             return false;
 
         if (ReferenceEquals(this, other))

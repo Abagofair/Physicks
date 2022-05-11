@@ -1,6 +1,5 @@
-﻿using GameUtilities.Triangulation;
-using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
+using GameUtilities.Triangulation;
 
 namespace GameUtilities.Meshes;
 

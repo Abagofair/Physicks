@@ -14,7 +14,7 @@ public class SpriteRenderer : IRenderer
         _spriteEffect = new SpriteEffect(graphicsDevice);
     }
 
-    public void Draw(RenderableQuadComponent renderable, Matrix? transform)
+    public void Draw(RenderableQuad renderable, Matrix? transform)
     {
         if (renderable == null) return;
         if (transform == null) transform = Matrix.Identity;

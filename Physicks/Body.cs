@@ -1,13 +1,27 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
+using Physicks.Collision;
 
 namespace Physicks;
 
 [Serializable]
-public class PhysicsComponent
+public class Body : IEquatable<Body>, ICollideable
 {
+    private static int id = 1;
+
+    public Body()
+    {
+        _id = id++;
+    }
+
+    private int _id;
+    public int Id => _id;
+
     [JsonInclude]
     public bool IsKinematic { get; set; }
+
+    [JsonInclude]
+    public bool IsFixedRotation { get; set; }
 
     [JsonInclude]
     public Vector2 Position { get; set; }
@@ -17,9 +31,6 @@ public class PhysicsComponent
 
     [JsonInclude]
     public float Restitution { get; set; } = 1.0f;
-
-    [JsonInclude]
-    public IShape? Shape { get; set; }
 
     private float _mass = 1.0f;
     [JsonInclude]
@@ -55,8 +66,6 @@ public class PhysicsComponent
 
     public float InverseMass { get; private set; } = 1.0f;
 
-    public ICollideable? Collideable { get; set; }
-
     //cache transform
     public Matrix4x4 Transform => Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0.0f));
 
@@ -73,6 +82,11 @@ public class PhysicsComponent
         }
     }
 
+    public bool IsTrigger { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public float Scale { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    Matrix4x4 ICollideable.Transform { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public IShape Shape { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
     public Vector2 WorldPosition(Vector2 offset) => Vector2.Transform(offset, Transform);
 
     //https://gafferongames.com/post/integration_basics/
@@ -85,7 +99,7 @@ public class PhysicsComponent
         Velocity += Acceleration * dt;
         Position += Velocity * dt;
 
-        if (Shape != null)
+        if (!IsFixedRotation)
         {
             AngularAcceleration = TorqueSum * InverseMomentOfInertia;
             AngularVelocity += AngularAcceleration * dt;
@@ -108,4 +122,16 @@ public class PhysicsComponent
 
         Velocity += impulse * InverseMass;
     }
+
+    public override int GetHashCode() => Id;
+
+    public bool Equals(Body? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(other, this)) return true;
+
+        return other.Id == Id;
+    }
+
+    public override bool Equals(object? obj) => Equals(obj as Body);
 }

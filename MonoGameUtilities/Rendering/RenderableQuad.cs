@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MonoGameUtilities.Rendering;
 
-public class RenderableQuadComponent : IRenderable
+public class RenderableQuad : IRenderable
 {
     private bool _isSetup;
 

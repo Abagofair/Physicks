@@ -14,7 +14,7 @@ public class RenderableQuadComponentParser : ComponentParser
         };
     }
 
-    public override Type ComponentType => typeof(RenderableQuadComponent);
+    public override Type ComponentType => typeof(RenderableQuad);
 
     public override Dictionary<Type, IPropertyParser> PropertyParsers { get; }
 }

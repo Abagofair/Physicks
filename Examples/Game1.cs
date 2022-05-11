@@ -1,4 +1,7 @@
-﻿using GameUtilities.EntitySystem;
+﻿using System;
+using System.IO;
+using System.Linq;
+using GameUtilities.EntitySystem;
 using GameUtilities.Options;
 using GameUtilities.Scene;
 using GameUtilities.System;
@@ -11,9 +14,8 @@ using MonoGameUtilities;
 using MonoGameUtilities.Rendering;
 using MonoGameUtilities.Serialization;
 using Physicks;
+using Physicks.Collision;
 using Physicks.Serialization;
-using System;
-using System.IO;
 
 namespace Examples
 {
@@ -28,6 +30,7 @@ namespace Examples
         private Entity _circleEntity;
         private Entity _circleEntity1;
 
+        private CollisionSystem _collisionSystem;
         private World _world;
 
         private DebugSpriteRenderer _debugSpriteRenderer;
@@ -50,17 +53,15 @@ namespace Examples
             IsFixedTimeStep = true;
             TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / 144.0);
 
-            _world = new World(
-                new System.Numerics.Vector2(
-                    _graphics.PreferredBackBufferWidth,
-                    _graphics.PreferredBackBufferHeight));
+            _collisionSystem = new CollisionSystem();
+            _world = new World(_collisionSystem);
 
             _entities = new Entities<EntityContext>(100);
 
             _sceneLoader = new SceneLoader(
-                new IComponentParser[] 
-                { 
-                    new PhysicsComponentParser(),
+                new IComponentParser[]
+                {
+                    new BodyParser(),
                     new RenderableQuadComponentParser()
                 });
 
@@ -82,8 +83,10 @@ namespace Examples
                 {
                     _sceneGraph = _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), fileName));
                     _sceneGraph.SetupBuffers(GraphicsDevice);
+                    _world.RegisterBodies(_sceneGraph.Entities.Query<Body>());
                 });
 
+            #region oldentitystuff
             /*var boxShapeEntityContext = new EntityContext();
             var boxShape = new BoxShape(50.0f, 50.0f);
             boxShapeEntityContext.AddOrOverride(new PhysicsComponent()
@@ -157,6 +160,7 @@ namespace Examples
                     }
                 };
             }*/
+            #endregion
 
             base.Initialize();
         }
@@ -168,6 +172,7 @@ namespace Examples
 
             _sceneGraph = _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), ".//Editor//Scene.json"));
             _sceneGraph.SetupBuffers(GraphicsDevice);
+            _world.RegisterBodies(_sceneGraph.Entities.Query<Body>());
         }
 
         protected override void Update(GameTime gameTime)
@@ -175,19 +180,10 @@ namespace Examples
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            _world.HandleCollisions(_sceneGraph.Entities.Query<PhysicsComponent>());
+            //_collisionSystem.HandleCollisions(_sceneGraph.Entities.Query<Body>().ToArray());
 
-            /*if (_world.TryGetEntity(_boxEntity.Id, out var box))
-            {
-                box.TorqueSum = 100000.0f;
-            }*/
+            _world.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
-            EntityContext circleContext = _entities.GetEntityContext(ref _circleEntity);
-            /*circleContext.Query<PhysicsObject>().Position = new System.Numerics.Vector2(
-                Mouse.GetState().X, Mouse.GetState().Y);*/
-
-            _world.Update(_sceneGraph.Entities.Query<PhysicsComponent>(), (float)gameTime.ElapsedGameTime.TotalSeconds);
-            
             base.Update(gameTime);
         }
 
@@ -195,7 +191,7 @@ namespace Examples
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            foreach ((RenderableQuadComponent renderable, PhysicsComponent physicsObject) in _sceneGraph.Entities.Query<RenderableQuadComponent, PhysicsComponent>())
+            foreach ((RenderableQuad renderable, Body physicsObject) in _sceneGraph.Entities.Query<RenderableQuad, Body>())
             {
                 _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(100.0f) * physicsObject.Transform.ToXnaMatrix4x4());
 

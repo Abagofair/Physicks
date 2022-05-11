@@ -4,9 +4,9 @@ using GameUtilities.System.Serialization.PropertyParsers;
 
 namespace Physicks.Serialization;
 
-public class PhysicsComponentParser : ComponentParser
+public class BodyParser : ComponentParser
 {
-    public PhysicsComponentParser()
+    public BodyParser()
     {
         PropertyParsers = new Dictionary<Type, IPropertyParser>
         {
@@ -16,7 +16,7 @@ public class PhysicsComponentParser : ComponentParser
         };
     }
 
-    public override Type ComponentType => typeof(PhysicsComponent);
+    public override Type ComponentType => typeof(Body);
 
     public override Dictionary<Type, IPropertyParser> PropertyParsers { get; }
 }

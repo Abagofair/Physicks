@@ -1,4 +1,6 @@
-﻿namespace GameUtilities.EntitySystem;
+﻿using System.Buffers;
+
+namespace GameUtilities.EntitySystem;
 
 //v0.1
 //todo: something better allocated
@@ -11,11 +13,15 @@ public class Entities<TEntityContext> where TEntityContext : IEntityContext
     private readonly TEntityContext[] _entityContexts;
     private readonly List<Entity> _entities;
 
+    private IMemoryOwner<Entity> _entitiesMemory;
+
     public Entities(int initialSize)
     {
         _entities = new List<Entity>();
         _entityContexts = new TEntityContext[initialSize];
         _currentSize = initialSize;
+
+        _entitiesMemory = MemoryPool<Entity>.Shared.Rent(initialSize);
     }
 
     public int CurrentSize => _currentSize;
@@ -49,7 +55,7 @@ public class Entities<TEntityContext> where TEntityContext : IEntityContext
         return _entityContexts[entity.Id];
     }
 
-    public IEnumerable<TComponent> Query<TComponent>() 
+    public IEnumerable<TComponent> Query<TComponent>()
         where TComponent : class
     {
         foreach (var entityContext in AssignedEntities)
@@ -60,7 +66,7 @@ public class Entities<TEntityContext> where TEntityContext : IEntityContext
         }
     }
 
-    public IEnumerable<(TComponentA, TComponentB)> Query<TComponentA, TComponentB>() 
+    public IEnumerable<(TComponentA, TComponentB)> Query<TComponentA, TComponentB>()
         where TComponentA : class
         where TComponentB : class
     {

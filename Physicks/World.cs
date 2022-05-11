@@ -1,32 +1,39 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
+using Physicks.Collision;
 
 namespace Physicks;
 
 public class World
 {
-    private readonly Vector2 _worldBounds;
     private float _accumulator;
     private float _gravity;
     private float _pixelPerMeterGravity;
     private float _airDrag;
     private float _pixelPerMeterAirDrag;
 
+    private Dictionary<int, Body> _bodies;
+
+    private CollisionSystem _collisionSystem;
+
     public World(
-        Vector2 worldBounds,
+        CollisionSystem collisionSystem,
         float airDrag = 0.001f,
         float gravity = 9.82f,
         int pixelsPerMeter = 50,
         float simulationHertz = 60.0f)
     {
+        _collisionSystem = collisionSystem ?? throw new ArgumentNullException(nameof(collisionSystem));
+        _collisionSystem.OnCollision += OnCollisionHandler;
+
         _gravity = gravity;
         _pixelPerMeterGravity = _gravity * pixelsPerMeter;
         _airDrag = airDrag;
         _pixelPerMeterAirDrag = _airDrag * pixelsPerMeter;
 
-        _worldBounds = worldBounds;
         PixelsPerMeter = pixelsPerMeter;
         SimulationHertz = simulationHertz;
+
+        _bodies = new Dictionary<int, Body>();
     }
 
     public static int PixelsPerMeter { get; private set; }
@@ -45,38 +52,46 @@ public class World
         }
     }
 
-    public void Update(IEnumerable<PhysicsComponent> physicsObjects, float dt)
+    public void RegisterBody(Body body)
+    {
+        if (body == null) throw new ArgumentNullException(nameof(body));
+        
+        _bodies.Add(body.Id, body);
+    }
+
+    private void OnCollisionHandler(object? sender, CollisionSystem.CollisionResult e)
+    {
+        if (_bodies.TryGetValue(e.A.Id, out Body? bodyA) &&
+            _bodies.TryGetValue(e.B.Id, out Body? bodyB))
+        {
+            e.CollisionContact?.ResolvePenetrationByImpulse(bodyA, bodyB);
+        }
+    }
+
+    public void RegisterBodies(IEnumerable<Body> bodies)
+    {
+        if (bodies == null) throw new ArgumentNullException(nameof(bodies));
+
+        foreach (Body body in bodies)
+        {
+            RegisterBody(body);
+        }
+    }
+
+    public void Update(float dt)
     {
         _accumulator += dt;
 
         while (_accumulator >= SecondsPerFrame)
         {
-            IntegrateObjects(physicsObjects, dt);
+            IntegrateObjects(_bodies.Values, dt);
 
             _accumulator -= dt;
             ElapsedTimeMilliseconds += dt;
         }
     }
 
-    public void HandleCollisions(IEnumerable<PhysicsComponent> physicsObjects)
-    {
-        var arr = physicsObjects.ToArray();
-        for (int i = 0; i < arr.Length - 1; i++)
-        {
-            for (int j = i + 1; j < arr.Length; j++)
-            {
-                var a = arr[i];
-                var b = arr[j];
-
-                if (CollisionDetection.IsColliding(a, b, out CollisionContact? collisionContact))
-                {
-                    collisionContact?.ResolvePenetrationByImpulse();
-                }
-            }
-        }
-    }
-
-    public static Vector2 CreateDragForce(PhysicsComponent physics2DObject, float dragCoeff)
+    public static Vector2 CreateDragForce(Body physics2DObject, float dragCoeff)
     {
         if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
 
@@ -96,7 +111,7 @@ public class World
         return dragForce;
     }
 
-    public static Vector2 CreateFrictionForce(PhysicsComponent physics2DObject, float frictionCoeff)
+    public static Vector2 CreateFrictionForce(Body physics2DObject, float frictionCoeff)
     {
         if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
 
@@ -106,8 +121,8 @@ public class World
     public static Vector2 CreateFrictionForce(Vector2 velocity, float frictionCoeff)
         => frictionCoeff * Vector2.Normalize(velocity) * -1.0f;
 
-    public static Vector2 CreateGravitationalForce(PhysicsComponent a, 
-        PhysicsComponent b, float gravitationalCoeff)
+    public static Vector2 CreateGravitationalForce(Body a,
+        Body b, float gravitationalCoeff)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
@@ -120,7 +135,7 @@ public class World
         return Vector2.Normalize(distanceBA) * attrMag;
     }
 
-    public static Vector2 CreateSpringForce(PhysicsComponent physics2DObject, Vector2 anchor, float restLength, float k)
+    public static Vector2 CreateSpringForce(Body physics2DObject, Vector2 anchor, float restLength, float k)
     {
         if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
 
@@ -140,15 +155,9 @@ public class World
     public double TransformToWorldUnit(double t) => t * PixelsPerMeter;
     public Vector2 TransformToWorldUnit(Vector2 vector2) => vector2 * PixelsPerMeter;
 
-    public void HandleWorldBounds(PhysicsComponent physicsObject)
+    private void IntegrateObjects(IEnumerable<Body> physicsObjects, float dt)
     {
-        if (TryHandleCircleWorldBoundsCollision(physicsObject))
-            return;
-    }
-
-    private void IntegrateObjects(IEnumerable<PhysicsComponent> physicsObjects, float dt)
-    {
-        foreach (PhysicsComponent physicsObject in physicsObjects)
+        foreach (Body physicsObject in physicsObjects)
         {
             if (!physicsObject.IsKinematic)
             {
@@ -156,41 +165,6 @@ public class World
                 physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * _pixelPerMeterGravity));
                 physicsObject.Integrate(dt);
             }
-
-            HandleWorldBounds(physicsObject);
         }
-    }
-
-    private bool TryHandleCircleWorldBoundsCollision(PhysicsComponent physicsObject)
-    {
-        //todo handle origin
-        if (physicsObject?.Collideable is CircleCollideable circleCollideable)
-        {
-            if (physicsObject.Position.X >= _worldBounds.X - circleCollideable.Radius)
-            {
-                physicsObject.Position = new Vector2(_worldBounds.X - circleCollideable.Radius, physicsObject.Position.Y);
-                physicsObject.Velocity = new Vector2(-(physicsObject.Velocity.X), physicsObject.Velocity.Y);
-            }
-            else if (physicsObject.Position.X <= 0)
-            {
-                physicsObject.Position = new Vector2(0.0f, physicsObject.Position.Y);
-                physicsObject.Velocity = new Vector2(-(physicsObject.Velocity.X), physicsObject.Velocity.Y);
-            }
-
-            if (physicsObject.Position.Y >= _worldBounds.Y - circleCollideable.Radius)
-            {
-                physicsObject.Position = new Vector2(physicsObject.Position.X, _worldBounds.Y - circleCollideable.Radius);
-                physicsObject.Velocity = new Vector2(physicsObject.Velocity.X, -(physicsObject.Velocity.Y));
-            }
-            else if (physicsObject.Position.Y <= 0)
-            {
-                physicsObject.Position = new Vector2(physicsObject.Position.X, 0.0f);
-                physicsObject.Velocity = new Vector2(physicsObject.Velocity.X, -(physicsObject.Velocity.Y));
-            }
-
-            return true;
-        }
-
-        return false;
     }
 }

@@ -4,10 +4,17 @@ public class EntityContext : IEntityContext
 {
     private readonly Dictionary<Type, object> _componentByType;
 
-    public EntityContext()
+    public EntityContext(string name)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException(@"Value cannot be null or empty", nameof(name));
+
         _componentByType = new Dictionary<Type, object>();
+
+        Name = name;
     }
+
+    public string Name { get; set; }
 
     public void AddOrOverride<TComponent>(TComponent component)
         where TComponent : class

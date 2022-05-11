@@ -4,7 +4,7 @@
       "Name": "Box",
       "Components": [
         {
-          "PhysicsComponent": {
+          "Body": {
             "IsKinematic": false,
             "Position": {
               "x": 500.0,
@@ -20,7 +20,7 @@
           }
         },
         {
-          "RenderableQuadComponent": {
+          "RenderableQuad": {
             "IsDrawable": true
           }
         }
@@ -30,7 +30,7 @@
       "Name": "AnotherBox",
       "Components": [
         {
-          "PhysicsComponent": {
+          "Body": {
             "IsKinematic": false,
             "Position": {
               "x": 700.0,
@@ -46,7 +46,7 @@
           }
         },
         {
-          "RenderableQuadComponent": {
+          "RenderableQuad": {
             "IsDrawable": true
           }
         }
@@ -56,7 +56,7 @@
       "Name": "AnotherAnotherBox",
       "Components": [
         {
-          "PhysicsComponent": {
+          "Body": {
             "IsKinematic": false,
             "Position": {
               "x": 900.0,
@@ -72,7 +72,7 @@
           }
         },
         {
-          "RenderableQuadComponent": {
+          "RenderableQuad": {
             "IsDrawable": true
           }
         }

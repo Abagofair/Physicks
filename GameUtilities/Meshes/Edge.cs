@@ -20,7 +20,7 @@ public class Edge : IEquatable<Edge>
         if (A == other.A && B == other.B ||
             A == other.B && B == other.A)
             return true;
-        
+
         return false;
     }
 

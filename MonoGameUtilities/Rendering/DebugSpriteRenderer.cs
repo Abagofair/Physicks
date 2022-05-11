@@ -14,7 +14,7 @@ public class DebugSpriteRenderer : IRenderer
         _spriteEffect = new SpriteEffect(graphicsDevice);
     }
 
-    public void Draw(RenderableQuadComponent renderable, Matrix? transform = null)
+    public void Draw(RenderableQuad renderable, Matrix? transform = null)
     {
         if (renderable == null) return;
         if (!renderable.IsSetup) return;
@@ -45,7 +45,7 @@ public class DebugSpriteRenderer : IRenderer
             CullMode = CullMode.CullClockwiseFace
         };
 
-       // _graphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+        // _graphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
         //_graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
