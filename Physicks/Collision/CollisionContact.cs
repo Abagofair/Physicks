@@ -45,15 +45,32 @@ public class CollisionContact
         ResolvePenetration(a, b);
 
         float e = Math.Min(a.Restitution, b.Restitution);
+        float f = Math.Min(a.Friction, b.Friction);
 
-        float vRelDotNormal = Vector2.Dot(a.Velocity - b.Velocity, Normal);
+        Vector2 ra = EndPosition - a.Position;
+        Vector2 rb = StartPosition - b.Position;
+        Vector2 va = a.LinearVelocity + new Vector2(-a.AngularVelocity * ra.Y, a.AngularVelocity * ra.X);
+        Vector2 vb = b.LinearVelocity + new Vector2(-b.AngularVelocity * rb.Y, b.AngularVelocity * rb.X);
+        Vector2 vRel = va - vb;
 
-        //-(1 + elasticityCoefficient)
-        float impulseMagnitude = -(1 + e) * vRelDotNormal / (a.InverseMass + b.InverseMass);
+        float vRelDotNormal = Vector2.Dot(vRel, Normal);
 
-        Vector2 impulse = impulseMagnitude * Normal;
+        Vector2 impulseDirection = Normal;
 
-        a.ApplyImpulse(impulse);
-        b.ApplyImpulse(-impulse);
+        float det = ((a.InverseMass + b.InverseMass) + Cross(ra, impulseDirection) * Cross(ra, impulseDirection) * a.InverseMomentOfInertia + Cross(rb, impulseDirection) * Cross(rb, impulseDirection) * b.InverseMomentOfInertia);
+        float impulseMagnitude = -(1 + e) * vRelDotNormal / det;
+
+        Vector2 impulseAlongNormal = impulseMagnitude * impulseDirection;
+
+        impulseDirection = new Vector2(Normal.Y, -Normal.X);
+        vRelDotNormal = Vector2.Dot(vRel, impulseDirection);
+        det = ((a.InverseMass + b.InverseMass) + Cross(ra, impulseDirection) * Cross(ra, impulseDirection) * a.InverseMomentOfInertia + Cross(rb, impulseDirection) * Cross(rb, impulseDirection) * b.InverseMomentOfInertia);
+        impulseMagnitude = f * -(1 + e) * vRelDotNormal / det;
+
+        Vector2 impulseAlongTangent = impulseMagnitude * impulseDirection + impulseAlongNormal;
+        a.ApplyAngularImpulse(impulseAlongTangent, ra);
+        b.ApplyAngularImpulse(-impulseAlongTangent, rb);
     }
+
+    private static float Cross(Vector2 a, Vector2 b) => (a.X * b.Y) - (a.Y * b.X);
 }

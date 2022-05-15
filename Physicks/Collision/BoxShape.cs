@@ -26,5 +26,5 @@ public class BoxShape : PolygonShape
     [JsonInclude]
     public float Height { get; }
 
-    public override float MomentOfInertia => 0.083333f * Width * Width * Height * Height;
+    public override float MomentOfInertia => 0.083333f * (Width * Width + Height * Height);
 }

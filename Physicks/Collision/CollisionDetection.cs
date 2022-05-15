@@ -111,20 +111,28 @@ public class CollisionDetection
         if (minSepAB > minSepBA)
         {
             Vector2 normal = Vector2.Normalize(new Vector2(axisAB.Y, -axisAB.X));
+            var depth = -minSepAB;
+            var start = pointAB;
+            var end = pointAB + normal * depth;
+
             collisionContact = new CollisionContact(
-                pointAB,
-                pointAB + normal * minSepAB,
+                start,
+                end,
                 normal,
-                -minSepAB);
+                depth);
         }
         else
         {
-            Vector2 normal = Vector2.Normalize(new Vector2(axisBA.Y, -axisBA.X));
+            Vector2 normal = -Vector2.Normalize(new Vector2(axisBA.Y, -axisBA.X));
+            var depth = -minSepBA;
+            var start = pointBA - normal * depth;
+            var end = pointBA;
+
             collisionContact = new CollisionContact(
-                pointBA,
-                pointBA - normal * minSepBA,
-                -normal,
-                -minSepBA);
+                start,
+                end,
+                normal,
+                depth);
         }
 
         return true;

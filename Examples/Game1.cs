@@ -165,10 +165,35 @@ namespace Examples
             _world.RegisterBodies(_sceneGraph.Entities.Query<Body>());
         }
 
+        bool pressed = false;
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Space) && !pressed)
+            {
+                var ec = new EntityContext("a");
+                var b = new Body()
+                {
+                    Position = new System.Numerics.Vector2(Mouse.GetState().X * World.MetersPerPixel, Mouse.GetState().Y * World.MetersPerPixel),
+                    Shape = new BoxShape(50.0f, 50.0f)
+                };
+                ec.AddOrOverride<Physicks.Body>(b);
+                ec.AddOrOverride<RenderableQuad>(new RenderableQuad()
+                {
+                    IsDrawable = true,
+                    Scale = new System.Numerics.Vector2(50.0f, 50.0f)
+                });
+                _sceneGraph.AddEntity(ec);
+                _sceneGraph.SetupBuffers(GraphicsDevice);
+                _world.RegisterBody(b);
+                pressed = true;
+            }
+            else if (Keyboard.GetState().IsKeyUp(Keys.Space))
+            {
+                pressed = false;
+            }
 
             _collisionSystem.HandleCollisions(_sceneGraph.Entities.Query<Body>().ToArray());
 

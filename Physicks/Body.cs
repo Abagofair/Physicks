@@ -33,6 +33,9 @@ public class Body : IEquatable<Body>, ICollideable
     public float Restitution { get; set; } = 1.0f;
 
     [JsonInclude]
+    public float Friction { get; set; } = 1.0f;
+
+    [JsonInclude]
     public IShape? Shape { get; set; }
 
     private float _mass = 1.0f;
@@ -57,9 +60,9 @@ public class Body : IEquatable<Body>, ICollideable
 
     public Vector2 ForceSum { get; set; }
 
-    public Vector2 Velocity { get; set; }
+    public Vector2 LinearVelocity { get; set; }
 
-    public Vector2 Acceleration { get; set; }
+    public Vector2 LinearAcceleration { get; set; }
 
     public float TorqueSum { get; set; }
 
@@ -93,9 +96,9 @@ public class Body : IEquatable<Body>, ICollideable
         if (IsKinematic)
             return;
 
-        Acceleration = ForceSum * InverseMass;
-        Velocity += Acceleration * dt;
-        Position += Velocity * dt;
+        LinearAcceleration = ForceSum * InverseMass;
+        LinearVelocity += LinearAcceleration * dt;
+        Position += LinearVelocity * dt;
 
         if (!IsFixedRotation)
         {
@@ -113,13 +116,24 @@ public class Body : IEquatable<Body>, ICollideable
         ForceSum += force;
     }
 
-    public void ApplyImpulse(Vector2 impulse)
+    public void ApplyLinearImpulse(Vector2 impulse)
     {
         if (IsKinematic)
             return;
 
-        Velocity += impulse * InverseMass;
+        LinearVelocity += impulse * InverseMass;
     }
+
+    public void ApplyAngularImpulse(Vector2 impulse, Vector2 distanceFromCenterOfMass)
+    {
+        if (IsKinematic)
+            return;
+
+        LinearVelocity += impulse * InverseMass;
+        AngularVelocity += Cross(distanceFromCenterOfMass, impulse) * InverseMomentOfInertia;
+    }
+
+    private float Cross(Vector2 a, Vector2 b) => (a.X * b.Y) - (a.Y * b.X);
 
     public override int GetHashCode() => Id;
 

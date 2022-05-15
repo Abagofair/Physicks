@@ -1,22 +1,54 @@
 {
   "Entities": [
     {
-      "Name": "Box",
+      "Name": "Floor",
+      "Components": [
+        {
+          "Body": {
+            "IsKinematic": true,
+            "Position": {
+              "x": 400.0,
+              "y": 525.0
+            },
+            "Rotation": 0.0,
+            "Restitution": 0.2,
+            "Friction": 0.2,
+            "Shape": {
+              "Width": 600.0,
+              "Height": 50.0
+            },
+            "Mass": 0.0
+          }
+        },
+        {
+          "RenderableQuad": {
+            "IsDrawable": true,
+            "Scale": {
+              "x": 600.0,
+              "y": 50.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Name": "Small",
       "Components": [
         {
           "Body": {
             "IsKinematic": false,
             "Position": {
-              "x": 10.0,
-              "y": 1.0
+              "x": 400.0,
+              "y": 200.0
             },
-            "Rotation": 0.5,
-            "Restitution": 0.7,
+            "Rotation": 1.0,
+            "Restitution": 0.5,
+            "Friction": 0.2,
+            "Mass": 1.0,
             "Shape": {
-              "Width": 1.0,
-              "Height": 1.0
-            },
-            "Mass": 10.2
+              "Width": 50.0,
+              "Height": 50.0
+            }
           }
         },
         {
@@ -25,96 +57,6 @@
             "Scale": {
               "x": 50.0,
               "y": 50.0
-            }
-          }
-        }
-      ]
-    },
-    {
-      "Name": "AnotherBox",
-      "Components": [
-        {
-          "Body": {
-            "IsKinematic": false,
-            "Position": {
-              "x": 23.0,
-              "y": 5.0
-            },
-            "Rotation": 0.0,
-            "Restitution": 1.0,
-            "Mass": 5.0,
-            "Shape": {
-              "Width": 1.0,
-              "Height": 1.0
-            }
-          }
-        },
-        {
-          "RenderableQuad": {
-            "IsDrawable": true,
-            "Scale": {
-              "x": 50.0,
-              "y": 50.0
-            }
-          }
-        }
-      ]
-    },
-    {
-      "Name": "AnotherBox",
-      "Components": [
-        {
-          "Body": {
-            "IsKinematic": true,
-            "Position": {
-              "x": 9.5,
-              "y": 10.0
-            },
-            "Rotation": 0.9,
-            "Restitution": 1.0,
-            "Mass": 5.0,
-            "Shape": {
-              "Width": 2.0,
-              "Height": 1.0
-            }
-          }
-        },
-        {
-          "RenderableQuad": {
-            "IsDrawable": true,
-            "Scale": {
-              "x": 100.0,
-              "y": 50.0
-            }
-          }
-        }
-      ]
-    },
-    {
-      "Name": "AnotherBox",
-      "Components": [
-        {
-          "Body": {
-            "IsKinematic": true,
-            "Position": {
-              "x": 20.5,
-              "y": 15.25
-            },
-            "Rotation": 0.0,
-            "Restitution": 1.0,
-            "Mass": 5.0,
-            "Shape": {
-              "Width": 20.0,
-              "Height": 1.0
-            }
-          }
-        },
-        {
-          "RenderableQuad": {
-            "IsDrawable": true,
-            "Scale": {
-              "x": 1000.0,
-              "y":  50.0
             }
           }
         }

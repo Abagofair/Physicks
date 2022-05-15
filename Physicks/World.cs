@@ -17,7 +17,7 @@ public class World
         CollisionSystem collisionSystem,
         float airDrag = 0.001f,
         float gravity = 10.0f,
-        float pixelsPerMeter = 50.0f,
+        float pixelsPerMeter = 1.0f,
         float simulationHertz = 60.0f)
     {
         _collisionSystem = collisionSystem ?? throw new ArgumentNullException(nameof(collisionSystem));
@@ -93,7 +93,7 @@ public class World
     {
         if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
 
-        return CreateDragForce(physics2DObject.Velocity, dragCoeff);
+        return CreateDragForce(physics2DObject.LinearVelocity, dragCoeff);
     }
 
     public static Vector2 CreateDragForce(Vector2 velocity, float dragCoeff)
@@ -113,7 +113,7 @@ public class World
     {
         if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
 
-        return CreateFrictionForce(physics2DObject.Velocity, frictionCoeff);
+        return CreateFrictionForce(physics2DObject.LinearVelocity, frictionCoeff);
     }
 
     public static Vector2 CreateFrictionForce(Vector2 velocity, float frictionCoeff)
@@ -154,8 +154,8 @@ public class World
         {
             if (!physicsObject.IsKinematic)
             {
-                //physicsObject.AddForce(CreateDragForce(physicsObject, _pixelPerMeterAirDrag));
-                physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * _gravity));
+                //physicsObject.AddForce(CreateDragForce(physicsObject, _airDrag * MetersPerPixel));
+                physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * 9.8f * 50.0f));
                 physicsObject.Integrate(dt);
             }
         }
