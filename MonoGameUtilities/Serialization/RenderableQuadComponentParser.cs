@@ -1,5 +1,4 @@
-﻿using GameUtilities.System.Serialization.ComponentParsers;
-using GameUtilities.System.Serialization.PropertyParsers;
+﻿using GameUtilities.System.Serialization.Parsers;
 using MonoGameUtilities.Rendering;
 
 namespace MonoGameUtilities.Serialization;
@@ -8,13 +7,14 @@ public class RenderableQuadComponentParser : ComponentParser
 {
     public RenderableQuadComponentParser()
     {
-        PropertyParsers = new Dictionary<Type, IPropertyParser>
+        PropertyParsers = new List<IPropertyParser>
         {
-            { typeof(bool), new BoolPropertyParser() }
+            new BoolPropertyParser(),
+            new Vector2PropertyParser()
         };
     }
 
     public override Type ComponentType => typeof(RenderableQuad);
 
-    public override Dictionary<Type, IPropertyParser> PropertyParsers { get; }
+    public override List<IPropertyParser> PropertyParsers { get; }
 }

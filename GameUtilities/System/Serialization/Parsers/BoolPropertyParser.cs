@@ -1,16 +1,16 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 
-namespace GameUtilities.System.Serialization.PropertyParsers;
+namespace GameUtilities.System.Serialization.Parsers;
 
-public class FloatPropertyParser : IPropertyParser
+public class BoolPropertyParser : IPropertyParser
 {
-    public Type Type => typeof(float);
+    public Type Type => typeof(bool);
 
     public void SetValue(ref Utf8JsonReader jsonReader, PropertyInfo propertyInfo, object setValueObject)
     {
         jsonReader.Read();
-        float value = (float)jsonReader.GetDouble();
+        bool value = jsonReader.GetBoolean();
         propertyInfo.SetValue(setValueObject, value);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 
-namespace GameUtilities.System.Serialization.PropertyParsers;
+namespace GameUtilities.System.Serialization.Parsers;
 
 public interface IPropertyParser
 {

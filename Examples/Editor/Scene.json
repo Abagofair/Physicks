@@ -7,21 +7,25 @@
           "Body": {
             "IsKinematic": false,
             "Position": {
-              "x": 500.0,
-              "y": 200.0
+              "x": 10.0,
+              "y": 1.0
             },
-            "Rotation": 0.0,
-            "Restitution": 1.0,
-            "Mass": 0.2,
-            "BoxShape": {
-              "Width": 50.0,
-              "Height": 50.0
-            }
+            "Rotation": 0.5,
+            "Restitution": 0.7,
+            "Shape": {
+              "Width": 1.0,
+              "Height": 1.0
+            },
+            "Mass": 10.2
           }
         },
         {
           "RenderableQuad": {
-            "IsDrawable": true
+            "IsDrawable": true,
+            "Scale": {
+              "x": 50.0,
+              "y": 50.0
+            }
           }
         }
       ]
@@ -33,47 +37,85 @@
           "Body": {
             "IsKinematic": false,
             "Position": {
-              "x": 700.0,
-              "y": 300.0
+              "x": 23.0,
+              "y": 5.0
             },
             "Rotation": 0.0,
             "Restitution": 1.0,
             "Mass": 5.0,
-            "BoxShape": {
-              "Width": 50.0,
-              "Height": 50.0
+            "Shape": {
+              "Width": 1.0,
+              "Height": 1.0
             }
           }
         },
         {
           "RenderableQuad": {
-            "IsDrawable": true
+            "IsDrawable": true,
+            "Scale": {
+              "x": 50.0,
+              "y": 50.0
+            }
           }
         }
       ]
     },
     {
-      "Name": "AnotherAnotherBox",
+      "Name": "AnotherBox",
       "Components": [
         {
           "Body": {
-            "IsKinematic": false,
+            "IsKinematic": true,
             "Position": {
-              "x": 900.0,
-              "y": 300.0
+              "x": 9.5,
+              "y": 10.0
             },
-            "Rotation": 0.0,
+            "Rotation": 0.9,
             "Restitution": 1.0,
-            "Mass": 10.0,
-            "BoxShape": {
-              "Width": 50.0,
-              "Height": 50.0
+            "Mass": 5.0,
+            "Shape": {
+              "Width": 2.0,
+              "Height": 1.0
             }
           }
         },
         {
           "RenderableQuad": {
-            "IsDrawable": true
+            "IsDrawable": true,
+            "Scale": {
+              "x": 100.0,
+              "y": 50.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Name": "AnotherBox",
+      "Components": [
+        {
+          "Body": {
+            "IsKinematic": true,
+            "Position": {
+              "x": 20.5,
+              "y": 15.25
+            },
+            "Rotation": 0.0,
+            "Restitution": 1.0,
+            "Mass": 5.0,
+            "Shape": {
+              "Width": 20.0,
+              "Height": 1.0
+            }
+          }
+        },
+        {
+          "RenderableQuad": {
+            "IsDrawable": true,
+            "Scale": {
+              "x": 1000.0,
+              "y":  50.0
+            }
           }
         }
       ]

@@ -7,9 +7,7 @@ public class World
 {
     private float _accumulator;
     private float _gravity;
-    private float _pixelPerMeterGravity;
     private float _airDrag;
-    private float _pixelPerMeterAirDrag;
 
     private Dictionary<int, Body> _bodies;
 
@@ -18,25 +16,25 @@ public class World
     public World(
         CollisionSystem collisionSystem,
         float airDrag = 0.001f,
-        float gravity = 9.82f,
-        int pixelsPerMeter = 50,
+        float gravity = 10.0f,
+        float pixelsPerMeter = 50.0f,
         float simulationHertz = 60.0f)
     {
         _collisionSystem = collisionSystem ?? throw new ArgumentNullException(nameof(collisionSystem));
         _collisionSystem.OnCollision += OnCollisionHandler;
 
         _gravity = gravity;
-        _pixelPerMeterGravity = _gravity * pixelsPerMeter;
         _airDrag = airDrag;
-        _pixelPerMeterAirDrag = _airDrag * pixelsPerMeter;
 
+        MetersPerPixel = 1.0f / pixelsPerMeter;
         PixelsPerMeter = pixelsPerMeter;
         SimulationHertz = simulationHertz;
 
         _bodies = new Dictionary<int, Body>();
     }
 
-    public static int PixelsPerMeter { get; private set; }
+    public static float MetersPerPixel { get; private set; }
+    public static float PixelsPerMeter { get; private set; }
 
     public float ElapsedTimeMilliseconds { get; private set; }
     public float SecondsPerFrame { get; private set; }
@@ -150,19 +148,14 @@ public class World
         return springForce;
     }
 
-    public int TransformToWorldUnit(int t) => t * PixelsPerMeter;
-    public float TransformToWorldUnit(float t) => t * PixelsPerMeter;
-    public double TransformToWorldUnit(double t) => t * PixelsPerMeter;
-    public Vector2 TransformToWorldUnit(Vector2 vector2) => vector2 * PixelsPerMeter;
-
     private void IntegrateObjects(IEnumerable<Body> physicsObjects, float dt)
     {
         foreach (Body physicsObject in physicsObjects)
         {
             if (!physicsObject.IsKinematic)
             {
-                physicsObject.AddForce(CreateDragForce(physicsObject, _pixelPerMeterAirDrag));
-                physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * _pixelPerMeterGravity));
+                //physicsObject.AddForce(CreateDragForce(physicsObject, _pixelPerMeterAirDrag));
+                physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * _gravity));
                 physicsObject.Integrate(dt);
             }
         }

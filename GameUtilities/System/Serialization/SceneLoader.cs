@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using GameUtilities.EntitySystem;
 using GameUtilities.Scene;
-using GameUtilities.System.Serialization.ComponentParsers;
+using GameUtilities.System.Serialization.Parsers;
 
 namespace GameUtilities.System.Serialization;
 
@@ -121,9 +121,7 @@ public class SceneLoader
                             var parseResult = ParseComponent(ref jsonReader);
                             if (parseResult?.Succeeded == true)
                             {
-                                entityContext.AddOrOverride(
-                                    parseResult.ComponentType,
-                                    parseResult.Component);
+                                entityContext.AddOrOverride(parseResult.ComponentType, parseResult.Component);
                             }
 
                             break;

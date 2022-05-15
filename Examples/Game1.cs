@@ -4,9 +4,10 @@ using System.Linq;
 using GameUtilities.EntitySystem;
 using GameUtilities.Options;
 using GameUtilities.Scene;
+using GameUtilities.Serialization.Parsers.Physicks;
 using GameUtilities.System;
 using GameUtilities.System.Serialization;
-using GameUtilities.System.Serialization.ComponentParsers;
+using GameUtilities.System.Serialization.Parsers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -15,7 +16,6 @@ using MonoGameUtilities.Rendering;
 using MonoGameUtilities.Serialization;
 using Physicks;
 using Physicks.Collision;
-using Physicks.Serialization;
 
 namespace Examples
 {
@@ -24,18 +24,10 @@ namespace Examples
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        private Entity _boxEntity;
-        private Entity _boxEntity1;
-
-        private Entity _circleEntity;
-        private Entity _circleEntity1;
-
         private CollisionSystem _collisionSystem;
         private World _world;
 
         private DebugSpriteRenderer _debugSpriteRenderer;
-
-        private Entities<EntityContext> _entities;
 
         private GameOptions _gameOptions;
 
@@ -56,12 +48,10 @@ namespace Examples
             _collisionSystem = new CollisionSystem();
             _world = new World(_collisionSystem);
 
-            _entities = new Entities<EntityContext>(100);
-
             _sceneLoader = new SceneLoader(
                 new IComponentParser[]
                 {
-                    new BodyParser(),
+                    new BodyComponentParser(),
                     new RenderableQuadComponentParser()
                 });
 
@@ -180,7 +170,7 @@ namespace Examples
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            //_collisionSystem.HandleCollisions(_sceneGraph.Entities.Query<Body>().ToArray());
+            _collisionSystem.HandleCollisions(_sceneGraph.Entities.Query<Body>().ToArray());
 
             _world.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
@@ -193,14 +183,18 @@ namespace Examples
 
             foreach ((RenderableQuad renderable, Body physicsObject) in _sceneGraph.Entities.Query<RenderableQuad, Body>())
             {
-                _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(100.0f) * physicsObject.Transform.ToXnaMatrix4x4());
+                _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(renderable.Scale.X, renderable.Scale.Y, 1.0f) * physicsObject.PixelsPerMeterTransform.ToXnaMatrix4x4());
 
-                //_spriteBatch.Begin(transformMatrix: physicsObject.Transform.ToXnaMatrix4x4());
-                //foreach (var item in (renderable.Vertices))
-                //{
-                //    _spriteBatch.DrawCircle(new Vector2(item.Position.X, item.Position.Y), 2.5f, 20, Color.Yellow);
-                //}
-                //_spriteBatch.End();
+                var boxShapeWidthScaled = ((BoxShape)physicsObject.Shape).Width * World.PixelsPerMeter;
+                var boxShapeHeightScaled = ((BoxShape)physicsObject.Shape).Height * World.PixelsPerMeter;
+                _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(boxShapeWidthScaled, boxShapeHeightScaled, 1.0f) * physicsObject.PixelsPerMeterTransform.ToXnaMatrix4x4());
+
+                /*_spriteBatch.Begin(transformMatrix: physicsObject.Transform.ToXnaMatrix4x4());
+                foreach (var item in ((BoxShape)physicsObject.Shape).Vertices)
+                {
+                    _spriteBatch.DrawCircle(new Vector2(item.X, item.Y), 2.5f, 20, Color.Yellow);
+                }
+                _spriteBatch.End();*/
             }
 
             base.Draw(gameTime);

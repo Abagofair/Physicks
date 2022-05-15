@@ -32,6 +32,9 @@ public class Body : IEquatable<Body>, ICollideable
     [JsonInclude]
     public float Restitution { get; set; } = 1.0f;
 
+    [JsonInclude]
+    public IShape? Shape { get; set; }
+
     private float _mass = 1.0f;
     [JsonInclude]
     public float Mass
@@ -68,7 +71,7 @@ public class Body : IEquatable<Body>, ICollideable
 
     //cache transform
     public Matrix4x4 Transform => Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0.0f));
-
+    public Matrix4x4 PixelsPerMeterTransform => Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation((new Vector3(Position, 0.0f) * World.PixelsPerMeter));
 
     public float MomentOfInertia => (Shape?.MomentOfInertia ?? 0.0f) * Mass;
 
@@ -81,11 +84,6 @@ public class Body : IEquatable<Body>, ICollideable
             return 0.0f;
         }
     }
-
-    public bool IsTrigger { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public float Scale { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    Matrix4x4 ICollideable.Transform { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public IShape Shape { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public Vector2 WorldPosition(Vector2 offset) => Vector2.Transform(offset, Transform);
 

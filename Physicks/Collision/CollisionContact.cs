@@ -51,7 +51,7 @@ public class CollisionContact
         //-(1 + elasticityCoefficient)
         float impulseMagnitude = -(1 + e) * vRelDotNormal / (a.InverseMass + b.InverseMass);
 
-        Vector2 impulse = impulseMagnitude * Normal * World.PixelsPerMeter;
+        Vector2 impulse = impulseMagnitude * Normal;
 
         a.ApplyImpulse(impulse);
         b.ApplyImpulse(-impulse);

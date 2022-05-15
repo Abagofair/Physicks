@@ -13,15 +13,11 @@ public class Entities<TEntityContext> where TEntityContext : IEntityContext
     private readonly TEntityContext[] _entityContexts;
     private readonly List<Entity> _entities;
 
-    private IMemoryOwner<Entity> _entitiesMemory;
-
     public Entities(int initialSize)
     {
         _entities = new List<Entity>();
         _entityContexts = new TEntityContext[initialSize];
         _currentSize = initialSize;
-
-        _entitiesMemory = MemoryPool<Entity>.Shared.Rent(initialSize);
     }
 
     public int CurrentSize => _currentSize;

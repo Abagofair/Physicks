@@ -1,4 +1,4 @@
-﻿namespace GameUtilities.System.Serialization.ComponentParsers;
+﻿namespace GameUtilities.System.Serialization.Parsers;
 
 public class ParseResult
 {

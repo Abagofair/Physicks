@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Text.Json;
 
-namespace GameUtilities.System.Serialization.PropertyParsers;
+namespace GameUtilities.System.Serialization.Parsers;
 
 public class Vector2PropertyParser : IPropertyParser
 {
@@ -30,5 +30,7 @@ public class Vector2PropertyParser : IPropertyParser
         float yValue = (float)jsonReader.GetDouble();
 
         propertyInfo.SetValue(setValueObject, new Vector2(xValue, yValue));
+
+        jsonReader.Read();
     }
 }

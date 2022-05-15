@@ -1,9 +1,8 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using GameUtilities.System.Serialization.PropertyParsers;
 
-namespace GameUtilities.System.Serialization.ComponentParsers;
+namespace GameUtilities.System.Serialization.Parsers;
 
 public abstract class ComponentParser : IComponentParser
 {
@@ -19,7 +18,7 @@ public abstract class ComponentParser : IComponentParser
 
     public abstract Type ComponentType { get; }
 
-    public abstract Dictionary<Type, IPropertyParser> PropertyParsers { get; }
+    public abstract List<IPropertyParser> PropertyParsers { get; }
 
     public ParseResult Parse(ref Utf8JsonReader jsonReader)
     {
@@ -52,12 +51,19 @@ public abstract class ComponentParser : IComponentParser
                 case JsonTokenType.PropertyName:
                     {
                         string? key = jsonReader.GetString();
-                        if (key != null &&
+                         if (key != null &&
                             _serializableProperties.TryGetValue(key, out PropertyInfo? propertyInfo))
                         {
-                            if (PropertyParsers.TryGetValue(propertyInfo.PropertyType, out IPropertyParser? parser))
+                            foreach (IPropertyParser propertyParser in PropertyParsers)
                             {
-                                parser.SetValue(ref jsonReader, propertyInfo, component);
+                                if (propertyParser.Type == propertyInfo.PropertyType)
+                                {
+                                    propertyParser.SetValue(ref jsonReader, propertyInfo, component);
+                                }
+                                else if (propertyParser.Type.GetInterface(propertyInfo.PropertyType.Name) != null)
+                                {
+                                    propertyParser.SetValue(ref jsonReader, propertyInfo, component);
+                                }
                             }
                         }
                         break;

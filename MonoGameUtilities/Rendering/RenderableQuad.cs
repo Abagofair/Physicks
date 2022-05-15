@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Numerics;
+using System.Text.Json.Serialization;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace MonoGameUtilities.Rendering;
@@ -9,6 +10,11 @@ public class RenderableQuad : IRenderable
 
     [JsonInclude]
     public bool IsDrawable { get; set; } = true;
+
+    [JsonInclude]
+    public Vector2 Scale { get; set; } = Vector2.One;
+
+    public Microsoft.Xna.Framework.Vector2 XnaScale => Scale.ToXnaVector2();
 
     public bool IsSetup => _isSetup;
 
