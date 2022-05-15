@@ -208,9 +208,18 @@ namespace Examples
 
             foreach ((RenderableQuad renderable, Body physicsObject) in _sceneGraph.Entities.Query<RenderableQuad, Body>())
             {
-                _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(renderable.Scale.X, renderable.Scale.Y, 1.0f) * physicsObject.PixelsPerMeterTransform.ToXnaMatrix4x4());
+                if (physicsObject.Shape is CircleShape shape)
+                {
+                    _spriteBatch.Begin(transformMatrix: Matrix.Identity);
+                    _spriteBatch.DrawCircle(new Vector2(physicsObject.Position.X, physicsObject.Position.Y), shape.Radius, 10, Color.Yellow);
+                    _spriteBatch.End();
+                }
+                else
+                {
+                    _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(renderable.Scale.X, renderable.Scale.Y, 1.0f) * physicsObject.PixelsPerMeterTransform.ToXnaMatrix4x4());
+                }
 
-                var boxShapeWidthScaled = ((BoxShape)physicsObject.Shape).Width * World.PixelsPerMeter;
+                /*var boxShapeWidthScaled = ((BoxShape)physicsObject.Shape).Width * World.PixelsPerMeter;
                 var boxShapeHeightScaled = ((BoxShape)physicsObject.Shape).Height * World.PixelsPerMeter;
                 _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(boxShapeWidthScaled, boxShapeHeightScaled, 1.0f) * physicsObject.PixelsPerMeterTransform.ToXnaMatrix4x4());
 

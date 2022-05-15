@@ -137,4 +137,30 @@ public class CollisionDetection
 
         return true;
     }
+
+    public static bool IsCollidingPolygonCircle(ICollideable polygon, ICollideable circle, out CollisionContact? collisionContact)
+    {
+        if (polygon == null) throw new ArgumentNullException(nameof(polygon));
+        if (circle == null) throw new ArgumentNullException(nameof(circle));
+
+        collisionContact = null;
+
+        PolygonShape? polygonA = polygon.Shape as PolygonShape;
+        CircleShape? circleB = circle.Shape as CircleShape;
+
+        if (polygonA == null || circleB == null) return false;
+
+        float minA = float.MinValue;
+        float minB = float.MinValue;
+        for (int i = 0; i < polygonA.Vertices.Length; i++)
+        {
+            Vector2 va1 = polygon.WorldPosition(polygonA.Vertices[i]);
+            Vector2 vb1 = polygon.WorldPosition(polygonA.Vertices[(i + 1) % polygonA.Vertices.Length]);
+
+            minA = Math.Min(minA, Vector2.DistanceSquared(va1, circle.Position));
+            minB = Math.Min(minB, Vector2.DistanceSquared(vb1, circle.Position));
+        }
+
+        return false;
+    }
 }

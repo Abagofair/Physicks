@@ -8,12 +8,34 @@ public abstract class ComponentParser : IComponentParser
 {
     private readonly Dictionary<string, PropertyInfo> _serializableProperties;
 
-    public ComponentParser()
+    public ComponentParser(params Type[] propertyInterfaceImplementations)
     {
         _serializableProperties = ComponentType
             .GetProperties()
             .Where(x => x.CustomAttributes.Any(a => a.AttributeType == typeof(JsonIncludeAttribute)))
             .ToDictionary(x => x.Name);
+
+        var interfaces = _serializableProperties.Values.Where(x => x.PropertyType.IsInterface).ToArray();
+
+        var serializablePropertiesToRemove = new List<string>();
+
+        //todo: find better way some day
+        foreach (Type item in propertyInterfaceImplementations)
+        {
+            foreach (var @interface in interfaces)
+            {
+                if (item.GetInterface(@interface.PropertyType.Name) != null)
+                {
+                    _serializableProperties.Add(item.Name, @interface);
+                    serializablePropertiesToRemove.Add(@interface.Name);
+                }
+            }
+        }
+
+        foreach (var item in serializablePropertiesToRemove)
+        {
+            _serializableProperties.Remove(item);
+        }
     }
 
     public abstract Type ComponentType { get; }
@@ -56,11 +78,8 @@ public abstract class ComponentParser : IComponentParser
                         {
                             foreach (IPropertyParser propertyParser in PropertyParsers)
                             {
-                                if (propertyParser.Type == propertyInfo.PropertyType)
-                                {
-                                    propertyParser.SetValue(ref jsonReader, propertyInfo, component);
-                                }
-                                else if (propertyParser.Type.GetInterface(propertyInfo.PropertyType.Name) != null)
+                                if ((propertyParser.Type == propertyInfo.PropertyType) ||
+                                    propertyParser.Type.Name == key && propertyParser.Type.GetInterface(propertyInfo.PropertyType.Name) != null)
                                 {
                                     propertyParser.SetValue(ref jsonReader, propertyInfo, component);
                                 }

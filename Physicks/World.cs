@@ -148,7 +148,7 @@ public class World
         return springForce;
     }
 
-    private void IntegrateObjects(IEnumerable<Body> physicsObjects, float dt)
+    private static void IntegrateObjects(IEnumerable<Body> physicsObjects, float dt)
     {
         foreach (Body physicsObject in physicsObjects)
         {

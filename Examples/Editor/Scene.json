@@ -13,7 +13,7 @@
             "Rotation": 0.0,
             "Restitution": 0.2,
             "Friction": 0.2,
-            "Shape": {
+            "BoxShape": {
               "Width": 600.0,
               "Height": 50.0
             },
@@ -45,9 +45,8 @@
             "Restitution": 0.5,
             "Friction": 0.2,
             "Mass": 1.0,
-            "Shape": {
-              "Width": 50.0,
-              "Height": 50.0
+            "CircleShape": {
+              "Radius": 50.0
             }
           }
         },

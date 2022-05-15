@@ -14,7 +14,8 @@ public class CollisionSystem
                 ICollideable b = collideables[j];
 
                 if (CollisionDetection.IsCollidingCircleCircle(a, b, out CollisionContact? collisionContact) ||
-                    CollisionDetection.IsCollidingPolygonPolygon(a, b, out collisionContact))
+                    CollisionDetection.IsCollidingPolygonPolygon(a, b, out collisionContact) ||
+                    CollisionDetection.IsCollidingPolygonCircle(a, b, out collisionContact))
                 {
                     var collisionResult = new CollisionResult(
                         a,
