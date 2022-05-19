@@ -8,7 +8,7 @@ namespace GameUtilities.Serialization.Parsers.Physicks;
 public class BodyComponentParser : ComponentParser
 {
     public BodyComponentParser()
-        : base(typeof(BoxShape), typeof(CircleShape), typeof(PolygonShape))
+        : base(typeof(BoxShape), typeof(CircleShape), typeof(PolygonShape)) //TODO: Should be overridable property?
     {
         PropertyParsers = new List<IPropertyParser>
         {

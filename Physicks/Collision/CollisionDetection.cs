@@ -150,15 +150,20 @@ public class CollisionDetection
 
         if (polygonA == null || circleB == null) return false;
 
-        float minA = float.MinValue;
-        float minB = float.MinValue;
         for (int i = 0; i < polygonA.Vertices.Length; i++)
         {
             Vector2 va1 = polygon.WorldPosition(polygonA.Vertices[i]);
             Vector2 vb1 = polygon.WorldPosition(polygonA.Vertices[(i + 1) % polygonA.Vertices.Length]);
 
-            minA = Math.Min(minA, Vector2.DistanceSquared(va1, circle.Position));
-            minB = Math.Min(minB, Vector2.DistanceSquared(vb1, circle.Position));
+            Vector2 edge = vb1 - va1;
+
+            Vector2 va1ToCircle = circle.Position - va1;
+            Vector2 edgeProjected = Vector2.Dot(Vector2.Normalize(circle.Position - va1), Vector2.Normalize(vb1 - va1)) * edge;
+
+            if (Vector2.Distance(va1ToCircle, edgeProjected) < circleB.Radius)
+            {
+                return true;
+            }
         }
 
         return false;
