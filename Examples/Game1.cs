@@ -80,7 +80,7 @@ namespace Examples
             #region oldentitystuff
 
             var posA = new Vector2(_gameOptions.Graphics.Display.Width / 2.0f, _gameOptions.Graphics.Display.Height / 2.0f);
-            var posB = new Vector2(posA.X - 100.0f, posA.Y - 100.0f);
+            var posB = new Vector2(posA.X - 50.0f, posA.Y - 50.0f);
 
             var aEntity = new EntityContext("aEntity");
             var bodyA = new Body()
@@ -113,25 +113,48 @@ namespace Examples
                 Scale = new System.Numerics.Vector2(50.0f, 50.0f)
             };
 
-            var jointConstraint = new JointConstraint(
+            bEntity.AddOrOverride(bodyB);
+            bEntity.AddOrOverride(renderableQuadB);
+
+            var cEntity = new EntityContext("cEntity");
+            var bodyC = new Body()
+            {
+                Position = new System.Numerics.Vector2(posB.X - 50.0f, posB.Y - 50.0f),
+                Shape = new BoxShape(50.0f, 50.0f),
+                Mass = 1.0f,
+                IsKinematic = false
+            };
+            var renderableQuadC = new RenderableQuad()
+            {
+                IsDrawable = true,
+                Scale = new System.Numerics.Vector2(50.0f, 50.0f)
+            };
+
+            cEntity.AddOrOverride(bodyC);
+            cEntity.AddOrOverride(renderableQuadC);
+
+            _sceneGraph.AddEntity(aEntity);
+            _sceneGraph.AddEntity(bEntity);
+            _sceneGraph.AddEntity(cEntity);
+
+            _sceneGraph.SetupBuffers(GraphicsDevice);
+
+            var jointConstraintA = new JointConstraint(
                 bodyA,
                 bodyB,
                 bodyA.Position);
 
-            bEntity.AddOrOverride(bodyB);
-            bEntity.AddOrOverride(renderableQuadB);
+            var jointConstraintB = new JointConstraint(
+                bodyB,
+                bodyC,
+                bodyB.Position);
 
-            _sceneGraph.AddEntity(aEntity);
-            _sceneGraph.AddEntity(bEntity);
-
-            _sceneGraph.SetupBuffers(GraphicsDevice);
-
-            var joint = new JointConstraint(bodyA, bodyB, bodyA.Position);
-            _world.RegisterConstraint(jointConstraint);
+            _world.RegisterConstraint(jointConstraintA);
+            _world.RegisterConstraint(jointConstraintB);
 
             _world.RegisterBody(bodyA);
             _world.RegisterBody(bodyB);
-
+            _world.RegisterBody(bodyC);
 
             #endregion
 

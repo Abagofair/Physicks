@@ -16,6 +16,9 @@ public class JointConstraint : Constraint
 
         Jacobian = new MatMN(1, 6);
         Jacobian.Zero();
+
+        CachedLambda = new VecN(Jacobian.M);
+        CachedLambda.Zero();
     }
 
     public Vector2 AnchorPointInFirstBodyLocalSpace { get; }
@@ -24,8 +27,10 @@ public class JointConstraint : Constraint
     public Vector2 AnchorPointInSecondBodyWorldSpace { get; }
 
     public MatMN Jacobian { get; }
+    public VecN CachedLambda { get; private set; }
+    public float Bias { get; private set; }
 
-    private void PopulateJacobian()
+    public override void PreSolve(float dt)
     {
         Vector2 pa = Vector2.Transform(AnchorPointInFirstBodyLocalSpace, First.Transform);
         Vector2 pb = Vector2.Transform(AnchorPointInSecondBodyLocalSpace, Second.Transform);
@@ -47,20 +52,34 @@ public class JointConstraint : Constraint
 
         float J4 = Body.Cross(rb, pb - pa) * 2.0f;
         Jacobian.Rows[0][5] = J4; //A angular velocity
+
+        //Warm starting
+        VecN impulses = Jacobian.Transpose() * CachedLambda;
+
+        First.ApplyLinearImpulse(new Vector2(impulses[0], impulses[1]));
+        First.ApplyAngularImpulse(impulses[2]);
+
+        Second.ApplyLinearImpulse(new Vector2(impulses[3], impulses[4]));
+        Second.ApplyAngularImpulse(impulses[5]);
+
+        //baumgartner stabilization factor - smoothness factor
+        float beta = 0.1f;
+        float positionalError = Vector2.Dot((pb - pa), (pb - pa));
+        Bias = (beta / dt) * positionalError;
     }
 
     public override void Solve()
     {
-        PopulateJacobian();
-
         //compute lambda
         VecN V = GetVelocities();
         MatMN invM = GetInverseMass();
 
         VecN numerator = Jacobian * V * -1.0f;
+        numerator[0] -= Bias;
         MatMN denominator = Jacobian * invM * Jacobian.Transpose();
 
         VecN lambda = MatMN.SolveGaussSeidel(denominator, numerator);
+        CachedLambda += lambda;
 
         VecN impulses = Jacobian.Transpose() * lambda;
 
@@ -70,5 +89,10 @@ public class JointConstraint : Constraint
 
         Second.ApplyLinearImpulse(new Vector2(impulses[3], impulses[4]));
         Second.ApplyAngularImpulse(impulses[5]);
+    }
+
+    public override void PostSolve()
+    {
+        
     }
 }

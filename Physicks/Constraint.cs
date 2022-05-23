@@ -48,5 +48,7 @@ public abstract class Constraint
         return vecN;
     }
 
+    public abstract void PreSolve(float dt);
     public abstract void Solve();
+    public abstract void PostSolve();
 }

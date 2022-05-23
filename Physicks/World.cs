@@ -110,7 +110,20 @@ public class World
 
             foreach (Constraint constraint in _contraints)
             {
-                constraint.Solve();
+                constraint.PreSolve(dt);
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                foreach (Constraint constraint in _contraints)
+                {
+                    constraint.Solve();
+                }
+            }
+
+            foreach (Constraint constraint in _contraints)
+            {
+                constraint.PostSolve();
             }
 
             foreach (Body physicsObject in _bodies.Values)

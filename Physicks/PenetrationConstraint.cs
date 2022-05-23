@@ -9,6 +9,16 @@ public class PenetrationConstraint : Constraint
     {
     }
 
+    public override void PreSolve(float dt)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void PostSolve()
+    {
+        throw new NotImplementedException();
+    }
+
     public override void Solve()
     {
         throw new NotImplementedException();
