@@ -29,13 +29,13 @@ public class CollisionContact
         if (!a.IsKinematic)
         {
             float da = Depth / (a.InverseMass + b.InverseMass) * a.InverseMass;
-            a.Position -= Normal * da;
+            a.Position -= Normal * da * 0.8f;
         }
 
         if (!b.IsKinematic)
         {
             float db = Depth / (a.InverseMass + b.InverseMass) * b.InverseMass;
-            b.Position += Normal * db;
+            b.Position += Normal * db * 0.8f;
         }
     }
 

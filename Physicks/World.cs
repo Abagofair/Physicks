@@ -10,6 +10,7 @@ public class World
     private float _airDrag;
 
     private Dictionary<int, Body> _bodies;
+    private List<Constraint> _contraints;
 
     private CollisionSystem _collisionSystem;
 
@@ -31,6 +32,7 @@ public class World
         SimulationHertz = simulationHertz;
 
         _bodies = new Dictionary<int, Body>();
+        _contraints = new List<Constraint>();
     }
 
     public static float MetersPerPixel { get; private set; }
@@ -50,13 +52,6 @@ public class World
         }
     }
 
-    public void RegisterBody(Body body)
-    {
-        if (body == null) throw new ArgumentNullException(nameof(body));
-        
-        _bodies.Add(body.Id, body);
-    }
-
     private void OnCollisionHandler(object? sender, CollisionSystem.CollisionResult e)
     {
         if (_bodies.TryGetValue(e.A.Id, out Body? bodyA) &&
@@ -64,6 +59,13 @@ public class World
         {
             e.CollisionContact?.ResolvePenetrationByImpulse(bodyA, bodyB);
         }
+    }
+
+    public void RegisterBody(Body body)
+    {
+        if (body == null) throw new ArgumentNullException(nameof(body));
+
+        _bodies.Add(body.Id, body);
     }
 
     public void RegisterBodies(IEnumerable<Body> bodies)
@@ -76,13 +78,45 @@ public class World
         }
     }
 
+    public void RegisterConstraint(Constraint constraint)
+    {
+        if (constraint == null) throw new ArgumentNullException(nameof(constraint));
+
+        _contraints.Add(constraint);
+    }
+
+    public void RegisterConstraints(IEnumerable<Constraint> constraints)
+    {
+        if (constraints == null) throw new ArgumentNullException(nameof(constraints));
+
+        foreach (Constraint body in constraints)
+        {
+            RegisterConstraint(body);
+        }
+    }
+
     public void Update(float dt)
     {
         _accumulator += dt;
 
         while (_accumulator >= SecondsPerFrame)
         {
-            IntegrateObjects(_bodies.Values, dt);
+            foreach (Body physicsObject in _bodies.Values)
+            {
+                //physicsObject.AddForce(CreateDragForce(physicsObject, _airDrag * MetersPerPixel));
+                physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * 9.8f * 50.0f));
+                physicsObject.IntegrateForces(dt);
+            }
+
+            foreach (Constraint constraint in _contraints)
+            {
+                constraint.Solve();
+            }
+
+            foreach (Body physicsObject in _bodies.Values)
+            {
+                physicsObject.IntegrateVelocities(dt);
+            }
 
             _accumulator -= dt;
             ElapsedTimeMilliseconds += dt;
@@ -146,18 +180,5 @@ public class World
 
         Vector2 springForce = springDirection * springMagnitude;
         return springForce;
-    }
-
-    private static void IntegrateObjects(IEnumerable<Body> physicsObjects, float dt)
-    {
-        foreach (Body physicsObject in physicsObjects)
-        {
-            if (!physicsObject.IsKinematic)
-            {
-                //physicsObject.AddForce(CreateDragForce(physicsObject, _airDrag * MetersPerPixel));
-                physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * 9.8f * 50.0f));
-                physicsObject.Integrate(dt);
-            }
-        }
     }
 }

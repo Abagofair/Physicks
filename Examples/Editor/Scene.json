@@ -7,14 +7,14 @@
           "Body": {
             "IsKinematic": true,
             "Position": {
-              "x": 400.0,
-              "y": 525.0
+              "x": 960.0,
+              "y": 1030.0
             },
             "Rotation": 0.0,
             "Restitution": 0.2,
             "Friction": 0.2,
             "BoxShape": {
-              "Width": 600.0,
+              "Width": 1920.0,
               "Height": 50.0
             },
             "Mass": 0.0
@@ -24,7 +24,7 @@
           "RenderableQuad": {
             "IsDrawable": true,
             "Scale": {
-              "x": 600.0,
+              "x": 1920.0,
               "y": 50.0
             }
           }
@@ -32,22 +32,23 @@
       ]
     },
     {
-      "Name": "Small",
+      "Name": "Wall1",
       "Components": [
         {
           "Body": {
-            "IsKinematic": false,
+            "IsKinematic": true,
             "Position": {
-              "x": 400.0,
-              "y": 200.0
+              "x": 50.0,
+              "y": 540.0
             },
-            "Rotation": 1.0,
-            "Restitution": 0.5,
+            "Rotation": 0.0,
+            "Restitution": 0.2,
             "Friction": 0.2,
-            "Mass": 1.0,
-            "CircleShape": {
-              "Radius": 50.0
-            }
+            "BoxShape": {
+              "Width": 50.0,
+              "Height": 1080.0
+            },
+            "Mass": 0.0
           }
         },
         {
@@ -55,7 +56,38 @@
             "IsDrawable": true,
             "Scale": {
               "x": 50.0,
-              "y": 50.0
+              "y": 1080.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Name": "Wall2",
+      "Components": [
+        {
+          "Body": {
+            "IsKinematic": true,
+            "Position": {
+              "x": 1870.0,
+              "y": 540.0
+            },
+            "Rotation": 0.0,
+            "Restitution": 0.2,
+            "Friction": 0.2,
+            "BoxShape": {
+              "Width": 50.0,
+              "Height": 1080.0
+            },
+            "Mass": 0.0
+          }
+        },
+        {
+          "RenderableQuad": {
+            "IsDrawable": true,
+            "Scale": {
+              "x": 50.0,
+              "y": 1080.0
             }
           }
         }

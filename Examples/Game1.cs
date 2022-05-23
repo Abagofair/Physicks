@@ -78,79 +78,61 @@ namespace Examples
                 });
 
             #region oldentitystuff
-            /*var boxShapeEntityContext = new EntityContext();
-            var boxShape = new BoxShape(50.0f, 50.0f);
-            boxShapeEntityContext.AddOrOverride(new PhysicsComponent()
-            {
-                Position = new System.Numerics.Vector2(600.0f, 120.0f),
-                Shape = boxShape,
-                Mass = 5.0f,
-                Rotation = -0.5f,
-                Restitution = 1.0f
-            });
-            var t = MeshHelpers.Delaunay_BowyerWatson(boxShape.Vertices);
-            boxShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
-            _boxEntity = _entities.CreateEntity(boxShapeEntityContext);
 
-            boxShapeEntityContext = new EntityContext();
-            boxShape = new BoxShape(50.0f, 50.0f);
-            boxShapeEntityContext.AddOrOverride(new PhysicsComponent()
-            {
-                Position = new System.Numerics.Vector2(600.0f, 1000.0f),
-                Shape = boxShape,
-                Mass = 10.0f,
-                IsKinematic = true
-            });
-            t = MeshHelpers.Delaunay_BowyerWatson(boxShape.Vertices);
-            boxShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
-            _boxEntity1 = _entities.CreateEntity(boxShapeEntityContext);*/
+            var posA = new Vector2(_gameOptions.Graphics.Display.Width / 2.0f, _gameOptions.Graphics.Display.Height / 2.0f);
+            var posB = new Vector2(posA.X - 100.0f, posA.Y - 100.0f);
 
-            /*var circleShapeEntityContext = new EntityContext();
-            var circleShape = new CircleShape(50.0f);
-            circleShapeEntityContext.AddOrOverride(new PhysicsObject()
+            var aEntity = new EntityContext("aEntity");
+            var bodyA = new Body()
             {
-                Position = new System.Numerics.Vector2(300.0f, 300.0f),
-                Shape = circleShape,
-                IsKinematic = true,
+                Position = new System.Numerics.Vector2(posA.X, posA.Y),
+                Shape = new BoxShape(50.0f, 50.0f),
+                Mass = 0.0f,
+                IsKinematic = false
+            };
+            var renderableQuadA = new RenderableQuad()
+            {
+                IsDrawable = true,
+                Scale = new System.Numerics.Vector2(50.0f, 50.0f)
+            };
+
+            aEntity.AddOrOverride(bodyA);
+            aEntity.AddOrOverride(renderableQuadA);
+
+            var bEntity = new EntityContext("bEntity");
+            var bodyB = new Body()
+            {
+                Position = new System.Numerics.Vector2(posB.X, posB.Y),
+                Shape = new BoxShape(50.0f, 50.0f),
                 Mass = 1.0f,
-                Restitution = 0.2f
-            });
-
-            var points = MeshHelpers.PointsFromCircle(circleShape.Radius, 15);
-            t = MeshHelpers.Delaunay_BowyerWatson(points);
-            circleShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
-            _circleEntity = _entities.CreateEntity(circleShapeEntityContext);
-
-            circleShapeEntityContext = new EntityContext();
-            circleShape = new CircleShape(40.0f);
-            circleShapeEntityContext.AddOrOverride(new PhysicsObject()
+                IsKinematic = false
+            };
+            var renderableQuadB = new RenderableQuad()
             {
-                Position = new System.Numerics.Vector2(300.0f, 60.0f),
-                Shape = circleShape,
-                IsKinematic = false,
-                Mass = 10.0f,
-                Restitution = 0.9f
-            });
-            points = MeshHelpers.PointsFromCircle(circleShape.Radius, 9);
-            t = MeshHelpers.Delaunay_BowyerWatson(points);
-            circleShapeEntityContext.AddOrOverride(new Renderable(GraphicsDevice, MeshHelpers.GetVertices(t).Select(x => x.Position.ToXnaVector2()).Select(x => new Vertex(new Vector3(x.X, x.Y, 0.0f), new Vector2())).ToArray()));
-            _circleEntity1 = _entities.CreateEntity(circleShapeEntityContext);*/
+                IsDrawable = true,
+                Scale = new System.Numerics.Vector2(50.0f, 50.0f)
+            };
 
-            /*_polygonEntity = new Entity(3);
-            if (_world.TryRegisterEntity(_polygonEntity.Id, out var polygonObject))
-            {
-                polygonObject.Position = new System.Numerics.Vector2(200.0f, 40.0f);
-                polygonObject.Shape = new PolygonShape()
-                {
-                    Vertices = new System.Numerics.Vector2[]
-                    {
-                        new System.Numerics.Vector2(50.0f, 40.0f),
-                        new System.Numerics.Vector2(100.0f, 40.0f),
-                        new System.Numerics.Vector2(75.0f, 80.0f),
-                        new System.Numerics.Vector2(50.0f, 40.0f)
-                    }
-                };
-            }*/
+            var jointConstraint = new JointConstraint(
+                bodyA,
+                bodyB,
+                bodyA.Position);
+
+            bEntity.AddOrOverride(bodyB);
+            bEntity.AddOrOverride(renderableQuadB);
+
+            _sceneGraph.AddEntity(aEntity);
+            _sceneGraph.AddEntity(bEntity);
+
+            _sceneGraph.SetupBuffers(GraphicsDevice);
+
+            var joint = new JointConstraint(bodyA, bodyB, bodyA.Position);
+            _world.RegisterConstraint(jointConstraint);
+
+            _world.RegisterBody(bodyA);
+            _world.RegisterBody(bodyB);
+
+
             #endregion
 
             base.Initialize();
@@ -161,9 +143,9 @@ namespace Examples
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _debugSpriteRenderer = new DebugSpriteRenderer(GraphicsDevice);
 
-            _sceneGraph = _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), ".//Editor//Scene.json"));
-            _sceneGraph.SetupBuffers(GraphicsDevice);
-            _world.RegisterBodies(_sceneGraph.Entities.Query<Body>());
+            //_sceneGraph = _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), ".//Editor//Scene.json"));
+            //_sceneGraph.SetupBuffers(GraphicsDevice);
+            //_world.RegisterBodies(_sceneGraph.Entities.Query<Body>());
         }
 
         bool pressed = false;
@@ -196,7 +178,7 @@ namespace Examples
                 pressed = false;
             }
 
-            //if (Keyboard.GetState().IsKeyDown(Keys.Q))
+            if (Keyboard.GetState().IsKeyDown(Keys.Q))
             {
                var c = _sceneGraph.Entities.Query<Body>().First(x => x.Shape is CircleShape);
                c.Position = new System.Numerics.Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y);
@@ -205,7 +187,7 @@ namespace Examples
 
             _collisionSystem.HandleCollisions(_sceneGraph.Entities.Query<Body>().ToArray());
 
-            //_world.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+            _world.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
             base.Update(gameTime);
         }
@@ -216,63 +198,14 @@ namespace Examples
 
             _spriteBatch.Begin(transformMatrix: Matrix.Identity);
 
-            var circleShape = _sceneGraph.Entities.Query<RenderableQuad, Body>().First(x => x.Item2.Shape is CircleShape);
-            var circlePosition = circleShape.Item2.Position.ToXnaVector2();
-            foreach ((RenderableQuad renderable, Body physicsObject) in _sceneGraph.Entities.Query<RenderableQuad, Body>().Where(x => x.Item2.Shape is BoxShape))
-            {
-                var polygon = ((BoxShape)physicsObject.Shape);
-                for (int i = 0; i < polygon.Vertices.Length; i++)
-                {
-                    Vector2 va1 = physicsObject.WorldPosition(polygon.Vertices[i]).ToXnaVector2();
-                    Vector2 vb1 = physicsObject.WorldPosition(polygon.Vertices[(i + 1) % polygon.Vertices.Length]).ToXnaVector2();
-
-                    Vector2 edge = va1 - vb1;
-
-                    Vector2 va1ToCircle = circlePosition - va1;
-                    Vector2 edgeProjected = ((Vector2.Dot(circlePosition - va1, edge)) / edge.Length()) * (Vector2.Normalize(edge));
-
-                    //draw edge
-                    _spriteBatch.DrawLine(va1, vb1, Color.LightGreen, 1.5f);
-
-                    var normal = -Vector2.Normalize(new Vector2(edge.Y, -edge.X));
-
-                    //draw edge out-normal
-                    _spriteBatch.DrawLine(va1, va1 + (normal * 30.0f), Color.Red, 2.0f);
-
-                    //draw line from vertex to circle center
-                    _spriteBatch.DrawLine(va1, circlePosition, Color.Chocolate, 1.5f);
-
-                    //draw the projection of va1ToCircle onto the edge
-                    _spriteBatch.DrawLine(va1, va1 + (edgeProjected), Color.DarkBlue, 2.0f);
-
-                    var projToCirc = circlePosition - (edgeProjected);
-
-                    //draw a line from projection of va1ToCircle tip to the circle center 
-                    _spriteBatch.DrawLine(va1 + (edgeProjected), circlePosition, Color.DarkSeaGreen, 2.0f);
-                    
-                    Debug.WriteLine(Vector2.Distance(va1 + (edgeProjected), circlePosition));
-
-                    //if the line from the tip of the va1ToCircle edge projection is less than the circle radius there would be a collision with the edge if that edge is the closest edge to the circle center
-                    if (Vector2.Distance(va1 + (edgeProjected), circlePosition) < ((CircleShape)circleShape.Item2.Shape).Radius)
-                    {
-                        _spriteBatch.DrawCircle(new Vector2(circlePosition.X, circlePosition.Y), ((CircleShape)circleShape.Item2.Shape).Radius, 10, Color.Red);
-                    }
-                    else
-                    {
-                        _spriteBatch.DrawCircle(new Vector2(circlePosition.X, circlePosition.Y), ((CircleShape)circleShape.Item2.Shape).Radius, 10, Color.Yellow);
-                    }
-
-                    break;
-                }
-            }
 
             foreach ((RenderableQuad renderable, Body physicsObject) in _sceneGraph.Entities.Query<RenderableQuad, Body>())
             {
-                if (physicsObject.Shape is CircleShape shape)
-                { 
-                    //_spriteBatch.DrawCircle(new Vector2(physicsObject.Position.X, physicsObject.Position.Y), shape.Radius, 10, Color.Yellow);
-                }
-                else
+                //if (physicsObject.Shape is CircleShape shape)
+                //{ 
+                //    //_spriteBatch.DrawCircle(new Vector2(physicsObject.Position.X, physicsObject.Position.Y), shape.Radius, 10, Color.Yellow);
+                //}
+                //else
                 {
                     _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(renderable.Scale.X, renderable.Scale.Y, 1.0f) * physicsObject.PixelsPerMeterTransform.ToXnaMatrix4x4());
                 }

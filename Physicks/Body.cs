@@ -74,6 +74,20 @@ public class Body : IEquatable<Body>, ICollideable
 
     //cache transform
     public Matrix4x4 Transform => Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0.0f));
+    
+    [Obsolete("Should probably only use the transpose since the matrix is orthogonal")]
+    public Matrix4x4 InverseTransform
+    {
+        get
+        {
+            if (Matrix4x4.Invert(Transform, out Matrix4x4 invertedMatrix))
+            {
+                return invertedMatrix;
+            }
+            throw new Exception("Matrix inversion failed");
+        }
+    }
+
     public Matrix4x4 PixelsPerMeterTransform => Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation((new Vector3(Position, 0.0f) * World.PixelsPerMeter));
 
     public float MomentOfInertia => (Shape?.MomentOfInertia ?? 0.0f) * Mass;
@@ -91,24 +105,55 @@ public class Body : IEquatable<Body>, ICollideable
     public Vector2 WorldPosition(Vector2 offset) => Vector2.Transform(offset, Transform);
 
     //https://gafferongames.com/post/integration_basics/
-    public void Integrate(float dt)
+    //public void Integrate(float dt)
+    //{
+    //    if (IsKinematic)
+    //        return;
+
+    //    LinearAcceleration = ForceSum * InverseMass;
+    //    LinearVelocity += LinearAcceleration * dt;
+    //    Position += LinearVelocity * dt;
+
+    //    if (!IsFixedRotation)
+    //    {
+    //        AngularAcceleration = TorqueSum * InverseMomentOfInertia;
+    //        AngularVelocity += AngularAcceleration * dt;
+    //        Rotation += AngularVelocity * dt;
+    //    }
+
+    //    ForceSum = Vector2.Zero;
+    //    TorqueSum = 0.0f;
+    //}
+
+    public void IntegrateForces(float dt)
     {
         if (IsKinematic)
             return;
 
         LinearAcceleration = ForceSum * InverseMass;
         LinearVelocity += LinearAcceleration * dt;
-        Position += LinearVelocity * dt;
 
         if (!IsFixedRotation)
         {
             AngularAcceleration = TorqueSum * InverseMomentOfInertia;
             AngularVelocity += AngularAcceleration * dt;
-            Rotation += AngularVelocity * dt;
         }
 
         ForceSum = Vector2.Zero;
         TorqueSum = 0.0f;
+    }
+
+    public void IntegrateVelocities(float dt)
+    {
+        if (IsKinematic)
+            return;
+
+        Position += LinearVelocity * dt;
+
+        if (!IsFixedRotation)
+        {
+            Rotation += AngularVelocity * dt;
+        }
     }
 
     public void AddForce(Vector2 force)
@@ -124,6 +169,14 @@ public class Body : IEquatable<Body>, ICollideable
         LinearVelocity += impulse * InverseMass;
     }
 
+    public void ApplyAngularImpulse(float impulse)
+    {
+        if (IsKinematic)
+            return;
+
+        AngularVelocity += impulse * InverseMomentOfInertia;
+    }
+
     public void ApplyAngularImpulse(Vector2 impulse, Vector2 distanceFromCenterOfMass)
     {
         if (IsKinematic)
@@ -133,7 +186,7 @@ public class Body : IEquatable<Body>, ICollideable
         AngularVelocity += Cross(distanceFromCenterOfMass, impulse) * InverseMomentOfInertia;
     }
 
-    private float Cross(Vector2 a, Vector2 b) => (a.X * b.Y) - (a.Y * b.X);
+    public static float Cross(Vector2 a, Vector2 b) => (a.X * b.Y) - (a.Y * b.X);
 
     public override int GetHashCode() => Id;
 

@@ -146,26 +146,122 @@ public class CollisionDetection
         collisionContact = null;
 
         PolygonShape? polygonA = polygon.Shape as PolygonShape;
-        CircleShape? circleB = circle.Shape as CircleShape;
+        CircleShape? circleShape = circle.Shape as CircleShape;
 
-        if (polygonA == null || circleB == null) return false;
+        if (polygonA == null || circleShape == null) return false;
+
+        float distanceCircleEdge = float.MinValue;
+        Vector2 a = Vector2.Zero;
+        Vector2 b = Vector2.Zero;
+        Vector2 edgeNormal = Vector2.Zero;
+
+        bool isOutside = false;
 
         for (int i = 0; i < polygonA.Vertices.Length; i++)
         {
             Vector2 va1 = polygon.WorldPosition(polygonA.Vertices[i]);
             Vector2 vb1 = polygon.WorldPosition(polygonA.Vertices[(i + 1) % polygonA.Vertices.Length]);
+            var edge = vb1 - va1;
 
-            Vector2 edge = vb1 - va1;
+            var va1ToCircle = circle.Position - va1;
+            var normal = Vector2.Normalize(new Vector2(edge.Y, -edge.X));
 
-            Vector2 va1ToCircle = circle.Position - va1;
-            Vector2 edgeProjected = Vector2.Dot(Vector2.Normalize(circle.Position - va1), Vector2.Normalize(vb1 - va1)) * edge;
+            float projection = Vector2.Dot(va1ToCircle, normal);
 
-            if (Vector2.Distance(va1ToCircle, edgeProjected) < circleB.Radius)
+            if (projection > 0.0f)
             {
-                return true;
+                distanceCircleEdge = projection;
+                edgeNormal = normal;
+                a = va1;
+                b = vb1;
+                isOutside = true;
+                break;
+            }
+            else
+            {
+                if (projection > distanceCircleEdge)
+                {
+                    distanceCircleEdge = projection;
+                    edgeNormal = normal;
+                    a = va1;
+                    b = vb1;
+                }
             }
         }
 
-        return false;
+        if (isOutside)
+        {
+            var v2 = b - a;
+            var bToA = a - b;
+            var v1 = circle.Position - a;
+            var bToCircle = circle.Position - b;
+
+            if (Vector2.Dot(v2, v1) < 0.0f)
+            {
+                if (v1.Length() <= circleShape.Radius)
+                {
+                    float depth = circleShape.Radius - v1.Length();
+                    var normal = Vector2.Normalize(v1);
+                    var start = circle.Position + (normal * -circleShape.Radius);
+
+                    collisionContact = new CollisionContact(
+                        startPosition: start,
+                        endPosition: start + (normal * depth),
+                        normal: normal,
+                        depth: depth);
+
+                    return true;
+                }
+            }
+            else if (Vector2.Dot(bToA, bToCircle) < 0.0f)
+            {
+                if (bToCircle.Length() <= circleShape.Radius)
+                {
+                    float depth = circleShape.Radius - bToCircle.Length();
+                    var normal = Vector2.Normalize(bToCircle);
+                    var start = circle.Position + (normal * -circleShape.Radius);
+
+                    collisionContact = new CollisionContact(
+                        startPosition: start,
+                        endPosition: start + (normal * depth),
+                        normal: normal,
+                        depth: depth);
+
+                    return true;
+                }
+            }
+            else
+            {
+                if (distanceCircleEdge <= circleShape.Radius)
+                {
+                    float depth = circleShape.Radius - distanceCircleEdge;
+                    var normal = Vector2.Normalize(edgeNormal);
+                    var start = circle.Position - (normal * circleShape.Radius);
+
+                    collisionContact = new CollisionContact(
+                        startPosition: start,
+                        endPosition: start + (normal * depth),
+                        normal: normal,
+                        depth: depth);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        else
+        {
+            float depth = circleShape.Radius - distanceCircleEdge;
+            var normal = edgeNormal;
+            var start = circle.Position - (normal * circleShape.Radius);
+
+            collisionContact = new CollisionContact(
+                startPosition: start,
+                endPosition: start + (normal * depth),
+                normal: normal,
+                depth: depth);
+
+            return true;
+        }
     }
 }
