@@ -79,82 +79,175 @@ namespace Examples
 
             #region oldentitystuff
 
-            var posA = new Vector2(_gameOptions.Graphics.Display.Width / 2.0f, _gameOptions.Graphics.Display.Height / 2.0f);
-            var posB = new Vector2(posA.X - 50.0f, posA.Y - 50.0f);
+            var posA = new Vector2(900.0f, _gameOptions.Graphics.Display.Height / 2.0f);
 
-            var aEntity = new EntityContext("aEntity");
+            var floor = new EntityContext("floor");
+            var floorBody = new Body()
+            {
+                Position = new System.Numerics.Vector2(900.0f, 850.0f),
+                Shape = new BoxShape(1000.0f, 25.0f),
+                Mass = 0.0f,
+                IsKinematic = true
+            };
+            var floorQuad = new RenderableQuad()
+            {
+                IsDrawable = true,
+                Scale = new System.Numerics.Vector2(1000.0f, 25.0f)
+            };
+
+            floor.AddOrOverride(floorBody);
+            floor.AddOrOverride(floorQuad);
+
+            var head = new EntityContext("head");
             var bodyA = new Body()
             {
-                Position = new System.Numerics.Vector2(posA.X, posA.Y),
-                Shape = new BoxShape(50.0f, 50.0f),
-                Mass = 0.0f,
+                Position = new System.Numerics.Vector2(900.0f, 100.0f),
+                Shape = new BoxShape(25.0f, 25.0f),
+                Mass = 1.0f,
                 IsKinematic = false
             };
             var renderableQuadA = new RenderableQuad()
             {
                 IsDrawable = true,
-                Scale = new System.Numerics.Vector2(50.0f, 50.0f)
+                Scale = new System.Numerics.Vector2(25.0f, 25.0f)
             };
 
-            aEntity.AddOrOverride(bodyA);
-            aEntity.AddOrOverride(renderableQuadA);
+            head.AddOrOverride(bodyA);
+            head.AddOrOverride(renderableQuadA);
 
-            var bEntity = new EntityContext("bEntity");
+            var torso = new EntityContext("torso");
             var bodyB = new Body()
             {
-                Position = new System.Numerics.Vector2(posB.X, posB.Y),
-                Shape = new BoxShape(50.0f, 50.0f),
+                Position = new System.Numerics.Vector2(900.0f, 165.0f),
+                Shape = new BoxShape(50.0f, 100.0f),
                 Mass = 1.0f,
                 IsKinematic = false
             };
             var renderableQuadB = new RenderableQuad()
             {
                 IsDrawable = true,
-                Scale = new System.Numerics.Vector2(50.0f, 50.0f)
+                Scale = new System.Numerics.Vector2(50.0f, 100.0f)
             };
 
-            bEntity.AddOrOverride(bodyB);
-            bEntity.AddOrOverride(renderableQuadB);
+            torso.AddOrOverride(bodyB);
+            torso.AddOrOverride(renderableQuadB);
 
-            var cEntity = new EntityContext("cEntity");
+            var left_arm = new EntityContext("left_arm");
             var bodyC = new Body()
             {
-                Position = new System.Numerics.Vector2(posB.X - 50.0f, posB.Y - 50.0f),
-                Shape = new BoxShape(50.0f, 50.0f),
+                Position = new System.Numerics.Vector2(860.0f, 160.0f),
+                Shape = new BoxShape(15.0f, 70.0f),
                 Mass = 1.0f,
                 IsKinematic = false
             };
             var renderableQuadC = new RenderableQuad()
             {
                 IsDrawable = true,
-                Scale = new System.Numerics.Vector2(50.0f, 50.0f)
+                Scale = new System.Numerics.Vector2(15.0f, 70.0f)
             };
 
-            cEntity.AddOrOverride(bodyC);
-            cEntity.AddOrOverride(renderableQuadC);
+            left_arm.AddOrOverride(bodyC);
+            left_arm.AddOrOverride(renderableQuadC);
 
-            _sceneGraph.AddEntity(aEntity);
-            _sceneGraph.AddEntity(bEntity);
-            _sceneGraph.AddEntity(cEntity);
+            var right_arm = new EntityContext("right_arm");
+            var bodyD = new Body()
+            {
+                Position = new System.Numerics.Vector2(940.0f, 160.0f),
+                Shape = new BoxShape(15.0f, 70.0f),
+                Mass = 1.0f,
+                IsKinematic = false
+            };
+            var renderableQuadD = new RenderableQuad()
+            {
+                IsDrawable = true,
+                Scale = new System.Numerics.Vector2(15.0f, 70.0f)
+            };
+
+            right_arm.AddOrOverride(bodyD);
+            right_arm.AddOrOverride(renderableQuadD);
+
+            var left_leg = new EntityContext("left_leg");
+            var bodyE = new Body()
+            {
+                Position = new System.Numerics.Vector2(882.0f, 262.0f),
+                Shape = new BoxShape(20.0f, 90.0f),
+                Mass = 1.0f,
+                IsKinematic = false
+            };
+            var renderableQuadE = new RenderableQuad()
+            {
+                IsDrawable = true,
+                Scale = new System.Numerics.Vector2(20.0f, 90.0f)
+            };
+
+            left_leg.AddOrOverride(bodyE);
+            left_leg.AddOrOverride(renderableQuadE);
+
+            var right_leg = new EntityContext("right_leg");
+            var bodyF = new Body()
+            {
+                Position = new System.Numerics.Vector2(918.0f, 262.0f),
+                Shape = new BoxShape(20.0f, 90.0f),
+                Mass = 1.0f,
+                IsKinematic = false
+            };
+            var renderableQuadF = new RenderableQuad()
+            {
+                IsDrawable = true,
+                Scale = new System.Numerics.Vector2(20.0f, 90.0f)
+            };
+
+            right_leg.AddOrOverride(bodyF);
+            right_leg.AddOrOverride(renderableQuadF);
+
+            _sceneGraph.AddEntity(floor);
+            _sceneGraph.AddEntity(head);
+            _sceneGraph.AddEntity(torso);
+            _sceneGraph.AddEntity(left_arm);
+            _sceneGraph.AddEntity(right_arm);
+            _sceneGraph.AddEntity(left_leg);
+            _sceneGraph.AddEntity(right_leg);
 
             _sceneGraph.SetupBuffers(GraphicsDevice);
 
             var jointConstraintA = new JointConstraint(
                 bodyA,
                 bodyB,
-                bodyA.Position);
+                new System.Numerics.Vector2(bodyA.Position.X, bodyA.Position.Y + 12.5f));
 
             var jointConstraintB = new JointConstraint(
                 bodyB,
                 bodyC,
-                bodyB.Position);
+                new System.Numerics.Vector2(bodyC.Position.X + 10.0f, bodyC.Position.Y - 35.0f));
+
+            var jointConstraintC = new JointConstraint(
+                bodyB,
+                bodyD,
+                new System.Numerics.Vector2(bodyD.Position.X - 10.0f, bodyD.Position.Y - 35.0f));
+
+            var jointConstraintD = new JointConstraint(
+                bodyB,
+                bodyE,
+                new System.Numerics.Vector2(bodyE.Position.X, bodyE.Position.Y - 45.0f));
+
+            var jointConstraintE = new JointConstraint(
+                bodyB,
+                bodyF,
+                new System.Numerics.Vector2(bodyF.Position.X, bodyF.Position.Y - 45.0f));
 
             _world.RegisterConstraint(jointConstraintA);
             _world.RegisterConstraint(jointConstraintB);
+            _world.RegisterConstraint(jointConstraintC);
+            _world.RegisterConstraint(jointConstraintD);
+            _world.RegisterConstraint(jointConstraintE);
 
+            _world.RegisterBody(floorBody);
             _world.RegisterBody(bodyA);
             _world.RegisterBody(bodyB);
             _world.RegisterBody(bodyC);
+            _world.RegisterBody(bodyD);
+            _world.RegisterBody(bodyE);
+            _world.RegisterBody(bodyF);
 
             #endregion
 
@@ -183,7 +276,8 @@ namespace Examples
                 var b = new Body()
                 {
                     Position = new System.Numerics.Vector2(Mouse.GetState().X * World.MetersPerPixel, Mouse.GetState().Y * World.MetersPerPixel),
-                    Shape = new BoxShape(50.0f, 50.0f)
+                    Shape = new BoxShape(50.0f, 50.0f),
+                    Restitution = 0.02f
                 };
                 ec.AddOrOverride<Physicks.Body>(b);
                 ec.AddOrOverride<RenderableQuad>(new RenderableQuad()
@@ -207,8 +301,6 @@ namespace Examples
                c.Position = new System.Numerics.Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y);
 
             }
-
-            _collisionSystem.HandleCollisions(_sceneGraph.Entities.Query<Body>().ToArray());
 
             _world.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 

@@ -88,7 +88,9 @@ public class MatMN
             {
                 if (a.Rows[i][i] != 0.0f)
                 {
-                    X[i] += (b[i] / a.Rows[i][i]) - (a.Rows[i].Dot(X) / a.Rows[i][i]);
+                    float dx = (b[i] / a.Rows[i][i]) - (a.Rows[i].Dot(X) / a.Rows[i][i]);
+                    if (!float.IsNaN(dx))
+                        X[i] += dx;
                 }
             }
         }

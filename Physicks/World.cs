@@ -10,7 +10,9 @@ public class World
     private float _airDrag;
 
     private Dictionary<int, Body> _bodies;
-    private List<Constraint> _contraints;
+
+    public List<Constraint> _constraints;
+    public List<PenetrationConstraint> _penetrationContraints;
 
     private CollisionSystem _collisionSystem;
 
@@ -32,7 +34,8 @@ public class World
         SimulationHertz = simulationHertz;
 
         _bodies = new Dictionary<int, Body>();
-        _contraints = new List<Constraint>();
+        _constraints = new List<Constraint>();
+        _penetrationContraints = new List<PenetrationConstraint>();
     }
 
     public static float MetersPerPixel { get; private set; }
@@ -57,7 +60,14 @@ public class World
         if (_bodies.TryGetValue(e.A.Id, out Body? bodyA) &&
             _bodies.TryGetValue(e.B.Id, out Body? bodyB))
         {
-            e.CollisionContact?.ResolvePenetrationByImpulse(bodyA, bodyB);
+            //e.CollisionContact?.ResolvePenetrationByImpulse(bodyA, bodyB);
+            var penConstraint = new PenetrationConstraint(
+                bodyA,
+                bodyB,
+                e.CollisionContact.StartPosition,
+                e.CollisionContact.EndPosition,
+                e.CollisionContact.Normal);
+            _penetrationContraints.Add(penConstraint);
         }
     }
 
@@ -82,7 +92,7 @@ public class World
     {
         if (constraint == null) throw new ArgumentNullException(nameof(constraint));
 
-        _contraints.Add(constraint);
+        _constraints.Add(constraint);
     }
 
     public void RegisterConstraints(IEnumerable<Constraint> constraints)
@@ -97,6 +107,8 @@ public class World
 
     public void Update(float dt)
     {
+        _penetrationContraints.Clear();
+
         _accumulator += dt;
 
         while (_accumulator >= SecondsPerFrame)
@@ -108,20 +120,24 @@ public class World
                 physicsObject.IntegrateForces(dt);
             }
 
-            foreach (Constraint constraint in _contraints)
+            _collisionSystem.HandleCollisions(_bodies.Values.ToArray());
+
+            var constraintsToSolve = _constraints.Concat(_penetrationContraints);
+
+            foreach (Constraint constraint in constraintsToSolve)
             {
                 constraint.PreSolve(dt);
             }
 
             for (int i = 0; i < 5; i++)
             {
-                foreach (Constraint constraint in _contraints)
+                foreach (Constraint constraint in constraintsToSolve)
                 {
                     constraint.Solve();
                 }
             }
 
-            foreach (Constraint constraint in _contraints)
+            foreach (Constraint constraint in constraintsToSolve)
             {
                 constraint.PostSolve();
             }

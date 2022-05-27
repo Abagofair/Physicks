@@ -2,6 +2,7 @@
 
 namespace Physicks;
 
+//TODO: HINGE CONSTRAINT
 public abstract class Constraint
 {
     public Constraint(

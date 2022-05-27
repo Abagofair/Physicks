@@ -8,11 +8,9 @@ public class JointConstraint : Constraint
     public JointConstraint(Body first, Body second, Vector2 worldSpaceAnchorPoint) 
         : base(first, second)
     {
+        AnchorPoint = worldSpaceAnchorPoint;
         AnchorPointInFirstBodyLocalSpace = Vector2.Transform(worldSpaceAnchorPoint, first.InverseTransform);
-        AnchorPointInFirstBodyWorldSpace = Vector2.Transform(AnchorPointInFirstBodyLocalSpace, first.Transform);
-
         AnchorPointInSecondBodyLocalSpace = Vector2.Transform(worldSpaceAnchorPoint, second.InverseTransform);
-        AnchorPointInSecondBodyWorldSpace = Vector2.Transform(AnchorPointInSecondBodyLocalSpace, second.Transform);
 
         Jacobian = new MatMN(1, 6);
         Jacobian.Zero();
@@ -21,10 +19,9 @@ public class JointConstraint : Constraint
         CachedLambda.Zero();
     }
 
+    public Vector2 AnchorPoint { get; }
     public Vector2 AnchorPointInFirstBodyLocalSpace { get; }
     public Vector2 AnchorPointInSecondBodyLocalSpace { get; }
-    public Vector2 AnchorPointInFirstBodyWorldSpace { get; }
-    public Vector2 AnchorPointInSecondBodyWorldSpace { get; }
 
     public MatMN Jacobian { get; }
     public VecN CachedLambda { get; private set; }
@@ -65,6 +62,7 @@ public class JointConstraint : Constraint
         //baumgartner stabilization factor - smoothness factor
         float beta = 0.1f;
         float positionalError = Vector2.Dot((pb - pa), (pb - pa));
+        positionalError = Math.Max(0.0f, positionalError - 0.01f);
         Bias = (beta / dt) * positionalError;
     }
 
