@@ -92,6 +92,37 @@
           }
         }
       ]
+    },
+    {
+      "Name": "Cube",
+      "Components": [
+        {
+          "Body": {
+            "IsKinematic": false,
+            "Position": {
+              "x": 800.0,
+              "y": 400.0
+            },
+            "Rotation": 0.0,
+            "Restitution": 0.2,
+            "Friction": 0.2,
+            "BoxShape": {
+              "Width": 50.0,
+              "Height": 50.0
+            },
+            "Mass": 1.0
+          }
+        },
+        {
+          "RenderableQuad": {
+            "IsDrawable": true,
+            "Scale": {
+              "x": 50.0,
+              "y": 50.0
+            }
+          }
+        }
+      ]
     }
   ]
 }

@@ -4,12 +4,12 @@ namespace Physicks.Collision;
 
 public class CollisionDetection
 {
-    public static bool IsCollidingCircleCircle(ICollideable a, ICollideable b, out CollisionContact? collisionContact)
+    public static bool IsCollidingCircleCircle(ICollideable a, ICollideable b, out List<CollisionContact> collisionContacts)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
 
-        collisionContact = null;
+        collisionContacts = new List<CollisionContact>();
 
         CircleShape? aAsCircle = a.Shape as CircleShape;
         CircleShape? bAsCircle = b.Shape as CircleShape;
@@ -28,11 +28,13 @@ public class CollisionDetection
             Vector2 end = a.Position + normal * aAsCircle.Radius;
             float depth = Vector2.Distance(end, start);
 
-            collisionContact = new CollisionContact(
+            var collisionContact = new CollisionContact(
                 start,
                 end,
                 normal,
                 depth);
+
+            collisionContacts.Add(collisionContact);
 
             return true;
         }
@@ -40,7 +42,7 @@ public class CollisionDetection
         return false;
     }
 
-    public static float FindMinimumSeparation(ICollideable a, ICollideable b, out Vector2 axis, out Vector2 point)
+    public static float FindMinimumSeparation(ICollideable a, ICollideable b, out int indexReferenceEdge, out Vector2 supportPoint)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
@@ -52,8 +54,8 @@ public class CollisionDetection
         if (polygonB == null) throw new InvalidCastException(nameof(b));
 
         float separation = float.MinValue;
-        axis = Vector2.Zero;
-        point = Vector2.Zero;
+        indexReferenceEdge = 0;
+        supportPoint = Vector2.Zero;
 
         for (int i = 0; i < polygonA.Vertices.Length; i++)
         {
@@ -77,73 +79,129 @@ public class CollisionDetection
             if (minimumSeparation > separation)
             {
                 separation = minimumSeparation;
-                axis = vb1 - va1;
-                point = minimumVertex;
+                indexReferenceEdge = i;
+                supportPoint = minimumVertex;
             }
         }
         return separation;
     }
 
-    public static bool IsCollidingPolygonPolygon(ICollideable a, ICollideable b, out CollisionContact? collisionContact)
+    public static bool IsCollidingPolygonPolygon(ICollideable a, ICollideable b, 
+        out List<CollisionContact> collisionContacts)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
 
-        collisionContact = null;
+        collisionContacts = new List<CollisionContact>();
 
-        PolygonShape? polygonA = a.Shape as PolygonShape;
-        PolygonShape? polygonB = b.Shape as PolygonShape;
+        PolygonShape? aPolygonShape = a.Shape as PolygonShape;
+        PolygonShape? bPolygonShape = b.Shape as PolygonShape;
 
-        if (polygonA == null || polygonB == null) return false;
+        if (aPolygonShape == null || bPolygonShape == null) return false;
 
-        float minSepAB = FindMinimumSeparation(a, b, out Vector2 axisAB, out Vector2 pointAB);
-        if (minSepAB >= 0.0f)
+        float abSeparation = FindMinimumSeparation(a, b, out int aIndexReferenceEdge, out _);
+        if (abSeparation >= 0.0f)
         {
             return false;
         }
 
-        float minSepBA = FindMinimumSeparation(b, a, out Vector2 axisBA, out Vector2 pointBA);
-        if (minSepBA >= 0.0f)
+        float baSeparation = FindMinimumSeparation(b, a, out int bIndexReferenceEdge, out _);
+        if (baSeparation >= 0.0f)
         {
             return false;
         }
 
-        if (minSepAB > minSepBA)
-        {
-            Vector2 normal = Vector2.Normalize(new Vector2(axisAB.Y, -axisAB.X));
-            var depth = -minSepAB;
-            var start = pointAB;
-            var end = pointAB + normal * depth;
+        PolygonShape referenceShape;
+        PolygonShape incidentShape;
+        int indexReferenceEdge;
 
-            collisionContact = new CollisionContact(
-                start,
-                end,
-                normal,
-                depth);
+        if (abSeparation > baSeparation)
+        {
+            referenceShape = aPolygonShape;
+            incidentShape = bPolygonShape;
+            indexReferenceEdge = aIndexReferenceEdge;
         }
         else
         {
-            Vector2 normal = -Vector2.Normalize(new Vector2(axisBA.Y, -axisBA.X));
-            var depth = -minSepBA;
-            var start = pointBA - normal * depth;
-            var end = pointBA;
+            referenceShape = bPolygonShape;
+            incidentShape = aPolygonShape;
+            indexReferenceEdge = bIndexReferenceEdge;
+        }
 
-            collisionContact = new CollisionContact(
-                start,
-                end,
-                normal,
-                depth);
+        Vector2 referenceEdge = referenceShape.EdgeAt(indexReferenceEdge);
+
+        int incidentIndex = incidentShape.FindIncidentEdge(Vector2.Normalize(new Vector2(referenceEdge.Y, -referenceEdge.X)));
+        int incidentNextIndex = (incidentIndex + 1) % incidentShape.VerticesInWorld.Length;
+
+        Vector2 v0 = incidentShape.VerticesInWorld[incidentIndex];
+        Vector2 v1 = incidentShape.VerticesInWorld[incidentNextIndex];
+
+        var contactPoints = new List<Vector2>()
+        {
+            v0, v1
+        };
+        var clippedPoints = new List<Vector2>(contactPoints);
+
+        for (int i = 0; i < referenceShape.VerticesInWorld.Length; i++)
+        {
+            if (i == indexReferenceEdge)
+            {
+                continue;
+            }
+
+            Vector2 c0 = referenceShape.VerticesInWorld[i];
+            Vector2 c1 = referenceShape.VerticesInWorld[(i + 1) % referenceShape.VerticesInWorld.Length];
+
+            int numClipped = referenceShape.ClipSegmentToLine(contactPoints, clippedPoints, c0, c1);
+            if (numClipped < 2)
+            {
+                break;
+            }
+
+            contactPoints.Clear();
+            contactPoints.AddRange(clippedPoints);
+        }
+
+        var vref = referenceShape.VerticesInWorld[indexReferenceEdge];
+
+        foreach (var vclip in clippedPoints)
+        {
+            float separation = Vector2.Dot(vclip - vref, Vector2.Normalize(new Vector2(referenceEdge.Y, -referenceEdge.X)));
+
+            if (separation <= 0)
+            {
+                var contactNormal = Vector2.Normalize(new Vector2(referenceEdge.Y, -referenceEdge.X));
+                Vector2 contactStart;
+                Vector2 contactEnd;
+                if (baSeparation >= abSeparation)
+                {
+                    contactStart = vclip + contactNormal * -separation;
+                    contactEnd = vclip;
+                    contactNormal *= -1;
+                }
+                else
+                {
+                    contactStart = vclip;
+                    contactEnd = vclip + contactNormal * -separation;
+                }
+                
+                collisionContacts.Add(new CollisionContact(
+                    contactStart,
+                    contactEnd,
+                    contactNormal,
+                    0.0f));
+            }
         }
 
         return true;
     }
 
-    public static bool IsCollidingPolygonCircle(ICollideable polygon, ICollideable circle, out CollisionContact? collisionContact)
+    public static bool IsCollidingPolygonCircle(ICollideable polygon, ICollideable circle, out List<CollisionContact> collisionContacts)
     {
         if (polygon == null) throw new ArgumentNullException(nameof(polygon));
         if (circle == null) throw new ArgumentNullException(nameof(circle));
 
-        collisionContact = null;
+        collisionContacts = new List<CollisionContact>();
 
         PolygonShape? polygonA = polygon.Shape as PolygonShape;
         CircleShape? circleShape = circle.Shape as CircleShape;
@@ -204,11 +262,13 @@ public class CollisionDetection
                     var normal = Vector2.Normalize(v1);
                     var start = circle.Position + (normal * -circleShape.Radius);
 
-                    collisionContact = new CollisionContact(
+                    var collisionContact = new CollisionContact(
                         startPosition: start,
                         endPosition: start + (normal * depth),
                         normal: normal,
                         depth: depth);
+
+                    collisionContacts.Add(collisionContact);
 
                     return true;
                 }
@@ -221,11 +281,13 @@ public class CollisionDetection
                     var normal = Vector2.Normalize(bToCircle);
                     var start = circle.Position + (normal * -circleShape.Radius);
 
-                    collisionContact = new CollisionContact(
+                    var collisionContact = new CollisionContact(
                         startPosition: start,
                         endPosition: start + (normal * depth),
                         normal: normal,
                         depth: depth);
+
+                    collisionContacts.Add(collisionContact);
 
                     return true;
                 }
@@ -238,11 +300,14 @@ public class CollisionDetection
                     var normal = Vector2.Normalize(edgeNormal);
                     var start = circle.Position - (normal * circleShape.Radius);
 
-                    collisionContact = new CollisionContact(
+                    var collisionContact = new CollisionContact(
                         startPosition: start,
                         endPosition: start + (normal * depth),
                         normal: normal,
                         depth: depth);
+
+                    collisionContacts.Add(collisionContact);
+
                     return true;
                 }
             }
@@ -255,11 +320,13 @@ public class CollisionDetection
             var normal = edgeNormal;
             var start = circle.Position - (normal * circleShape.Radius);
 
-            collisionContact = new CollisionContact(
+            var collisionContact = new CollisionContact(
                 startPosition: start,
                 endPosition: start + (normal * depth),
                 normal: normal,
                 depth: depth);
+
+            collisionContacts.Add(collisionContact);
 
             return true;
         }

@@ -13,14 +13,14 @@ public class CollisionSystem
                 ICollideable a = collideables[i];
                 ICollideable b = collideables[j];
 
-                if (CollisionDetection.IsCollidingCircleCircle(a, b, out CollisionContact? collisionContact) ||
-                    CollisionDetection.IsCollidingPolygonPolygon(a, b, out collisionContact) ||
-                    CollisionDetection.IsCollidingPolygonCircle(a, b, out collisionContact))
+                if (CollisionDetection.IsCollidingCircleCircle(a, b, out List<CollisionContact> collisionContacts) ||
+                    CollisionDetection.IsCollidingPolygonPolygon(a, b, out collisionContacts) ||
+                    CollisionDetection.IsCollidingPolygonCircle(a, b, out collisionContacts))
                 {
                     var collisionResult = new CollisionResult(
                         a,
                         b,
-                        collisionContact);
+                        collisionContacts);
 
                     OnCollision?.Invoke(this, collisionResult);
                 }
@@ -33,15 +33,15 @@ public class CollisionSystem
         public CollisionResult(
             ICollideable a,
             ICollideable b,
-            CollisionContact? collisionContact)
+            List<CollisionContact> collisionContacts)
         {
             A = a;
             B = b;
-            CollisionContact = collisionContact;
+            CollisionContacts = collisionContacts;
         }
 
         public ICollideable A { get; }
         public ICollideable B { get; }
-        public CollisionContact? CollisionContact { get; }
+        public List<CollisionContact> CollisionContacts { get; }
     }
 }

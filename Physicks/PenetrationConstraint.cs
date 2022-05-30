@@ -111,7 +111,7 @@ public class PenetrationConstraint : Constraint
             : CachedLambda[0];
 
         lambda = CachedLambda - oldLambda;*/
-
+                
         CachedLambda += lambda;
 
         if (Friction > 0.0f)

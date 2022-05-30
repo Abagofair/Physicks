@@ -61,19 +61,28 @@ public class World
             _bodies.TryGetValue(e.B.Id, out Body? bodyB))
         {
             //e.CollisionContact?.ResolvePenetrationByImpulse(bodyA, bodyB);
-            var penConstraint = new PenetrationConstraint(
-                bodyA,
-                bodyB,
-                e.CollisionContact.StartPosition,
-                e.CollisionContact.EndPosition,
-                e.CollisionContact.Normal);
-            _penetrationContraints.Add(penConstraint);
+            foreach (CollisionContact collisionContact in e.CollisionContacts)
+            {
+                var penConstraint = new PenetrationConstraint(
+                    bodyA,
+                    bodyB,
+                    collisionContact.StartPosition,
+                    collisionContact.EndPosition,
+                    collisionContact.Normal);
+
+                _penetrationContraints.Add(penConstraint);
+            }
         }
     }
 
     public void RegisterBody(Body body)
     {
         if (body == null) throw new ArgumentNullException(nameof(body));
+
+        if (body.Shape is PolygonShape shapeB)
+        {
+            shapeB.TransformVertices(body.Transform);
+        }
 
         _bodies.Add(body.Id, body);
     }
@@ -129,7 +138,7 @@ public class World
                 constraint.PreSolve(dt);
             }
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 10; i++)
             {
                 foreach (Constraint constraint in constraintsToSolve)
                 {
