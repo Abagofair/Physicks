@@ -47,7 +47,7 @@ namespace Examples
             TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / 144.0);
 
             _collisionSystem = new CollisionSystem();
-            _world = new World(_collisionSystem, gravity: 0.5f, pixelsPerMeter: 1.0f, simulationHertz: 60.0f);
+            _world = new World(_collisionSystem, new SemiImplicitEuler(), gravity: 0.5f, pixelsPerMeter: 1.0f, simulationHertz: 60.0f);
 
             _sceneLoader = new SceneLoader(
                 new IComponentParser[]
@@ -58,6 +58,8 @@ namespace Examples
 
             _sceneGraph = new SceneGraph();
         }
+
+        private ReadOnlyMemory<Particle> _particles;
 
         protected override void Initialize()
         {
@@ -77,179 +79,25 @@ namespace Examples
                     _world.RegisterBodies(_sceneGraph.Entities.Query<Body>());
                 });
 
-            #region oldentitystuff
+            //Spring[] springs = new[]
+            //{
+            //    new Spring(0, 1, 10.0f, 25.0f),
+            //    new Spring(1, 2, 10.0f, 25.0f),
+            //    new Spring(2, 3, 10.0f, 25.0f),
+            //    new Spring(3, 0, 10.0f, 25.0f)
+            //};
 
-            var posA = new Vector2(900.0f, _gameOptions.Graphics.Display.Height / 2.0f);
+            //var particles = new Particle[]
+            //{
+            //    new Particle(new System.Numerics.Vector2(400.0f, 400.0f), 5.0f),
+            //    new Particle(new System.Numerics.Vector2(425.0f, 400.0f), 5.0f),
+            //    new Particle(new System.Numerics.Vector2(425.0f, 425.0f), 5.0f),
+            //    new Particle(new System.Numerics.Vector2(400.0f, 425.0f), 5.0f)
+            //};
 
-            var floor = new EntityContext("floor");
-            var floorBody = new Body()
-            {
-                Position = new System.Numerics.Vector2(900.0f, 850.0f),
-                Shape = new BoxShape(1000.0f, 25.0f),
-                Mass = 0.0f,
-                IsKinematic = true
-            };
-            var floorQuad = new RenderableQuad()
-            {
-                IsDrawable = true,
-                Scale = new System.Numerics.Vector2(1000.0f, 25.0f)
-            };
+            //_particles = new ReadOnlyMemory<Particle>(particles);
 
-            floor.AddOrOverride(floorBody);
-            floor.AddOrOverride(floorQuad);
-
-            var head = new EntityContext("head");
-            var bodyA = new Body()
-            {
-                Position = new System.Numerics.Vector2(900.0f, 100.0f),
-                Shape = new BoxShape(25.0f, 25.0f),
-                Mass = 1.0f,
-                IsKinematic = false
-            };
-            var renderableQuadA = new RenderableQuad()
-            {
-                IsDrawable = true,
-                Scale = new System.Numerics.Vector2(25.0f, 25.0f)
-            };
-
-            head.AddOrOverride(bodyA);
-            head.AddOrOverride(renderableQuadA);
-
-            var torso = new EntityContext("torso");
-            var bodyB = new Body()
-            {
-                Position = new System.Numerics.Vector2(900.0f, 165.0f),
-                Shape = new BoxShape(50.0f, 100.0f),
-                Mass = 1.0f,
-                IsKinematic = false
-            };
-            var renderableQuadB = new RenderableQuad()
-            {
-                IsDrawable = true,
-                Scale = new System.Numerics.Vector2(50.0f, 100.0f)
-            };
-
-            torso.AddOrOverride(bodyB);
-            torso.AddOrOverride(renderableQuadB);
-
-            var left_arm = new EntityContext("left_arm");
-            var bodyC = new Body()
-            {
-                Position = new System.Numerics.Vector2(860.0f, 160.0f),
-                Shape = new BoxShape(15.0f, 70.0f),
-                Mass = 1.0f,
-                IsKinematic = false
-            };
-            var renderableQuadC = new RenderableQuad()
-            {
-                IsDrawable = true,
-                Scale = new System.Numerics.Vector2(15.0f, 70.0f)
-            };
-
-            left_arm.AddOrOverride(bodyC);
-            left_arm.AddOrOverride(renderableQuadC);
-
-            var right_arm = new EntityContext("right_arm");
-            var bodyD = new Body()
-            {
-                Position = new System.Numerics.Vector2(940.0f, 160.0f),
-                Shape = new BoxShape(15.0f, 70.0f),
-                Mass = 1.0f,
-                IsKinematic = false
-            };
-            var renderableQuadD = new RenderableQuad()
-            {
-                IsDrawable = true,
-                Scale = new System.Numerics.Vector2(15.0f, 70.0f)
-            };
-
-            right_arm.AddOrOverride(bodyD);
-            right_arm.AddOrOverride(renderableQuadD);
-
-            var left_leg = new EntityContext("left_leg");
-            var bodyE = new Body()
-            {
-                Position = new System.Numerics.Vector2(882.0f, 262.0f),
-                Shape = new BoxShape(20.0f, 90.0f),
-                Mass = 1.0f,
-                IsKinematic = false
-            };
-            var renderableQuadE = new RenderableQuad()
-            {
-                IsDrawable = true,
-                Scale = new System.Numerics.Vector2(20.0f, 90.0f)
-            };
-
-            left_leg.AddOrOverride(bodyE);
-            left_leg.AddOrOverride(renderableQuadE);
-
-            var right_leg = new EntityContext("right_leg");
-            var bodyF = new Body()
-            {
-                Position = new System.Numerics.Vector2(918.0f, 262.0f),
-                Shape = new BoxShape(20.0f, 90.0f),
-                Mass = 1.0f,
-                IsKinematic = false
-            };
-            var renderableQuadF = new RenderableQuad()
-            {
-                IsDrawable = true,
-                Scale = new System.Numerics.Vector2(20.0f, 90.0f)
-            };
-
-            right_leg.AddOrOverride(bodyF);
-            right_leg.AddOrOverride(renderableQuadF);
-
-            _sceneGraph.AddEntity(floor);
-            _sceneGraph.AddEntity(head);
-            _sceneGraph.AddEntity(torso);
-            _sceneGraph.AddEntity(left_arm);
-            _sceneGraph.AddEntity(right_arm);
-            _sceneGraph.AddEntity(left_leg);
-            _sceneGraph.AddEntity(right_leg);
-
-            _sceneGraph.SetupBuffers(GraphicsDevice);
-
-            var jointConstraintA = new JointConstraint(
-                bodyA,
-                bodyB,
-                new System.Numerics.Vector2(bodyA.Position.X, bodyA.Position.Y + 12.5f));
-
-            var jointConstraintB = new JointConstraint(
-                bodyB,
-                bodyC,
-                new System.Numerics.Vector2(bodyC.Position.X + 10.0f, bodyC.Position.Y - 35.0f));
-
-            var jointConstraintC = new JointConstraint(
-                bodyB,
-                bodyD,
-                new System.Numerics.Vector2(bodyD.Position.X - 10.0f, bodyD.Position.Y - 35.0f));
-
-            var jointConstraintD = new JointConstraint(
-                bodyB,
-                bodyE,
-                new System.Numerics.Vector2(bodyE.Position.X, bodyE.Position.Y - 45.0f));
-
-            var jointConstraintE = new JointConstraint(
-                bodyB,
-                bodyF,
-                new System.Numerics.Vector2(bodyF.Position.X, bodyF.Position.Y - 45.0f));
-
-            _world.RegisterConstraint(jointConstraintA);
-            _world.RegisterConstraint(jointConstraintB);
-            _world.RegisterConstraint(jointConstraintC);
-            _world.RegisterConstraint(jointConstraintD);
-            _world.RegisterConstraint(jointConstraintE);
-
-            _world.RegisterBody(floorBody);
-            _world.RegisterBody(bodyA);
-            _world.RegisterBody(bodyB);
-            _world.RegisterBody(bodyC);
-            _world.RegisterBody(bodyD);
-            _world.RegisterBody(bodyE);
-            _world.RegisterBody(bodyF);
-
-            #endregion
+            //_massSpringSystem = new MassSpringSystem(springs);
 
             base.Initialize();
         }
@@ -335,6 +183,13 @@ namespace Examples
                     _spriteBatch.DrawCircle(new Vector2(item.X, item.Y), 2.5f, 20, Color.Yellow);
                 }
                 _spriteBatch.End();*/
+            }
+
+            var span = _particles.Span;
+            for (int i = 0; i < span.Length; i++)
+            {
+                var particle = span[i];
+                _spriteBatch.DrawCircle(new Vector2(particle.Position.X, particle.Position.Y), 1.0f, 10, Color.Yellow);
             }
 
             _spriteBatch.End();

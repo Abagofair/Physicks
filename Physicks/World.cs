@@ -16,14 +16,18 @@ public class World
 
     private CollisionSystem _collisionSystem;
 
+    private IIntegrator _integrator;
+
     public World(
         CollisionSystem collisionSystem,
+        IIntegrator integrator,
         float airDrag = 0.001f,
         float gravity = 10.0f,
         float pixelsPerMeter = 1.0f,
         float simulationHertz = 60.0f)
     {
         _collisionSystem = collisionSystem ?? throw new ArgumentNullException(nameof(collisionSystem));
+        _integrator = integrator ?? throw new ArgumentNullException(nameof(integrator));
         _collisionSystem.OnCollision += OnCollisionHandler;
 
         _gravity = gravity;
@@ -139,6 +143,53 @@ public class World
             }
 
             for (int i = 0; i < 10; i++)
+            {
+                foreach (Constraint constraint in constraintsToSolve)
+                {
+                    constraint.Solve();
+                }
+            }
+
+            foreach (Constraint constraint in constraintsToSolve)
+            {
+                constraint.PostSolve();
+            }
+
+            foreach (Body physicsObject in _bodies.Values)
+            {
+                physicsObject.IntegrateVelocities(dt);
+            }
+
+            _accumulator -= dt;
+            ElapsedTimeMilliseconds += dt;
+        }
+    }
+
+    public void Update(ReadOnlySpan<Particle> particles, float dt)
+    {
+        _penetrationContraints.Clear();
+
+        _accumulator += dt;
+
+        while (_accumulator >= SecondsPerFrame)
+        {
+            for (int i = 0; i < particles.Length; i++)
+            {
+                var particle = particles[i];
+                particle.Force += new Vector2(0.0f, particle.Mass * 9.8f);
+                _integrator.IntegrateForces(particle, dt);
+            }
+
+            _collisionSystem.HandleCollisions(_bodies.Values.ToArray());
+
+            var constraintsToSolve = _constraints.Concat(_penetrationContraints);
+
+            foreach (Constraint constraint in constraintsToSolve)
+            {
+                constraint.PreSolve(dt);
+            }
+
+            for (int i = 0; i < 5; i++)
             {
                 foreach (Constraint constraint in constraintsToSolve)
                 {

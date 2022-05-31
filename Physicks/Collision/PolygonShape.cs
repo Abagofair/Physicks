@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Physicks.MathHelpers;
 
 namespace Physicks.Collision;
 
@@ -10,7 +11,19 @@ public class PolygonShape : IShape
         VerticesInWorld = Array.Empty<Vector2>();
     }
 
+    public PolygonShape(
+        Particle[] particles,
+        float momentOfInertia)
+    {
+        if (particles == null || particles.Length == 0) throw new ArgumentException("Cannot be empty or null", nameof(particles));
+
+        Vertices = ParticleToPosition(particles).ToArray();
+        VerticesInWorld = Array.Empty<Vector2>();
+        MomentOfInertia = momentOfInertia;
+    }
+
     public Vector2[] Vertices { get; set; }
+    [Obsolete("Remove this useless trapping")]
     public Vector2[] VerticesInWorld { get; set; }
     public virtual float MomentOfInertia { get; set; }
 
@@ -60,8 +73,8 @@ public class PolygonShape : IShape
         int numOut = 0;
 
         Vector2 normal = Vector2.Normalize((c1 - c0));
-        float dist0 = Body.Cross((contactsIn[0] - c0), normal);
-        float dist1 = Body.Cross((contactsIn[1] - c0), normal);
+        float dist0 = MathFunctions.Cross((contactsIn[0] - c0), normal);
+        float dist1 = MathFunctions.Cross((contactsIn[1] - c0), normal);
 
         if (dist0 <= 0)
         {
@@ -83,5 +96,15 @@ public class PolygonShape : IShape
         }
 
         return numOut;
+    }
+
+    private static IEnumerable<Vector2> ParticleToPosition(Particle[] particles)
+    {
+        if (particles == null || particles.Length == 0) throw new ArgumentException(nameof(particles));
+
+        foreach (Particle particle in particles)
+        {
+            yield return particle.Position;
+        }
     }
 }

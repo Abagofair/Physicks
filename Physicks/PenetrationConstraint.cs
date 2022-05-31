@@ -48,14 +48,14 @@ public class PenetrationConstraint : Constraint
         Jacobian.Rows[0][0] = J1.X; //A linear velocity.X
         Jacobian.Rows[0][1] = J1.Y; //A linear velocity.Y
 
-        float J2 = -Body.Cross(ra, normalInWorldSpace);//Body.Cross(ra, pa - pb) * 2.0f;
+        float J2 = -MathFunctions.Cross(ra, normalInWorldSpace);//Body.Cross(ra, pa - pb) * 2.0f;
         Jacobian.Rows[0][2] = J2; //A angular velocity
 
         Vector2 J3 = normalInWorldSpace;//(pb - pa) * 2.0f;
         Jacobian.Rows[0][3] = J3.X; //B linear velocity.X
         Jacobian.Rows[0][4] = J3.Y; //B linear velocity.Y
 
-        float J4 = Body.Cross(rb, normalInWorldSpace);//Body.Cross(rb, pb - pa) * 2.0f;
+        float J4 = MathFunctions.Cross(rb, normalInWorldSpace);//Body.Cross(rb, pb - pa) * 2.0f;
         Jacobian.Rows[0][5] = J4; //A angular velocity
 
         Friction = Math.Max(First.Friction, Second.Friction);
@@ -64,11 +64,11 @@ public class PenetrationConstraint : Constraint
             var tangent = new Vector2(normalInWorldSpace.Y, -normalInWorldSpace.X);
             Jacobian.Rows[1][0] = -tangent.X;
             Jacobian.Rows[1][1] = -tangent.Y;
-            Jacobian.Rows[1][2] = -Body.Cross(ra, tangent);
+            Jacobian.Rows[1][2] = -MathFunctions.Cross(ra, tangent);
 
             Jacobian.Rows[1][3] = tangent.X;
             Jacobian.Rows[1][4] = tangent.Y;
-            Jacobian.Rows[1][5] = Body.Cross(rb, tangent);
+            Jacobian.Rows[1][5] = MathFunctions.Cross(rb, tangent);
         }
 
         //Warm starting

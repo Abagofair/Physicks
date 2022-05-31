@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
 using Physicks.Collision;
+using Physicks.MathHelpers;
 
 namespace Physicks;
 
@@ -188,10 +189,8 @@ public class Body : IEquatable<Body>, ICollideable
             return;
 
         LinearVelocity += impulse * InverseMass;
-        AngularVelocity += Cross(distanceFromCenterOfMass, impulse) * InverseMomentOfInertia;
+        AngularVelocity += MathFunctions.Cross(distanceFromCenterOfMass, impulse) * InverseMomentOfInertia;
     }
-
-    public static float Cross(Vector2 a, Vector2 b) => (a.X * b.Y) - (a.Y * b.X);
 
     public override int GetHashCode() => Id;
 

@@ -40,14 +40,14 @@ public class JointConstraint : Constraint
         Jacobian.Rows[0][0] = J1.X; //A linear velocity.X
         Jacobian.Rows[0][1] = J1.Y; //A linear velocity.Y
 
-        float J2 = Body.Cross(ra, pa - pb) * 2.0f;
+        float J2 = MathFunctions.Cross(ra, pa - pb) * 2.0f;
         Jacobian.Rows[0][2] = J2; //A angular velocity
 
         Vector2 J3 = (pb - pa) * 2.0f;
         Jacobian.Rows[0][3] = J3.X; //B linear velocity.X
         Jacobian.Rows[0][4] = J3.Y; //B linear velocity.Y
 
-        float J4 = Body.Cross(rb, pb - pa) * 2.0f;
+        float J4 = MathFunctions.Cross(rb, pb - pa) * 2.0f;
         Jacobian.Rows[0][5] = J4; //A angular velocity
 
         //Warm starting
