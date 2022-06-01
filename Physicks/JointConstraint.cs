@@ -1,16 +1,22 @@
 ﻿using System.Numerics;
-using Physicks.MathHelpers;
+using Physicks.Collision;
+using Physicks.Math;
 
 namespace Physicks;
 
 public class JointConstraint : Constraint
 {
-    public JointConstraint(Body first, Body second, Vector2 worldSpaceAnchorPoint) 
-        : base(first, second)
+    public JointConstraint(
+        Collideable first,
+        Collideable second, 
+        Vector2 worldSpaceAnchorPoint) 
+        : base(
+            first, 
+            second)
     {
         AnchorPoint = worldSpaceAnchorPoint;
-        AnchorPointInFirstBodyLocalSpace = Vector2.Transform(worldSpaceAnchorPoint, first.InverseTransform);
-        AnchorPointInSecondBodyLocalSpace = Vector2.Transform(worldSpaceAnchorPoint, second.InverseTransform);
+        AnchorPointInFirstBodyLocalSpace = Vector2.Transform(worldSpaceAnchorPoint, first.Particle.InverseTransform);
+        AnchorPointInSecondBodyLocalSpace = Vector2.Transform(worldSpaceAnchorPoint, second.Particle.InverseTransform);
 
         Jacobian = new MatMN(1, 6);
         Jacobian.Zero();
@@ -29,40 +35,40 @@ public class JointConstraint : Constraint
 
     public override void PreSolve(float dt)
     {
-        Vector2 pa = Vector2.Transform(AnchorPointInFirstBodyLocalSpace, First.Transform);
-        Vector2 pb = Vector2.Transform(AnchorPointInSecondBodyLocalSpace, Second.Transform);
+        Vector2 pa = Vector2.Transform(AnchorPointInFirstBodyLocalSpace, First.Particle.Transform);
+        Vector2 pb = Vector2.Transform(AnchorPointInSecondBodyLocalSpace, Second.Particle.Transform);
 
-        Vector2 ra = pa - First.Position;
-        Vector2 rb = pb - Second.Position;
+        Vector2 ra = pa - First.Particle.Position;
+        Vector2 rb = pb - Second.Particle.Position;
 
         //populate the distance jacobian
         Vector2 J1 = (pa - pb) * 2.0f;
         Jacobian.Rows[0][0] = J1.X; //A linear velocity.X
         Jacobian.Rows[0][1] = J1.Y; //A linear velocity.Y
 
-        float J2 = MathFunctions.Cross(ra, pa - pb) * 2.0f;
+        float J2 = Math.Math.Cross(ra, pa - pb) * 2.0f;
         Jacobian.Rows[0][2] = J2; //A angular velocity
 
         Vector2 J3 = (pb - pa) * 2.0f;
         Jacobian.Rows[0][3] = J3.X; //B linear velocity.X
         Jacobian.Rows[0][4] = J3.Y; //B linear velocity.Y
 
-        float J4 = MathFunctions.Cross(rb, pb - pa) * 2.0f;
+        float J4 = Math.Math.Cross(rb, pb - pa) * 2.0f;
         Jacobian.Rows[0][5] = J4; //A angular velocity
 
         //Warm starting
         VecN impulses = Jacobian.Transpose() * CachedLambda;
 
-        First.ApplyLinearImpulse(new Vector2(impulses[0], impulses[1]));
-        First.ApplyAngularImpulse(impulses[2]);
+        First.Particle.ApplyLinearImpulse(new Vector2(impulses[0], impulses[1]), First.Shape.InverseMass);
+        First.Particle.ApplyAngularImpulse(impulses[2], First.Shape.InverseMomentOfInertia);
 
-        Second.ApplyLinearImpulse(new Vector2(impulses[3], impulses[4]));
-        Second.ApplyAngularImpulse(impulses[5]);
+        Second.Particle.ApplyLinearImpulse(new Vector2(impulses[3], impulses[4]), Second.Shape.InverseMass);
+        Second.Particle.ApplyAngularImpulse(impulses[5], Second.Shape.InverseMomentOfInertia);
 
         //baumgartner stabilization factor - smoothness factor
         float beta = 0.1f;
         float positionalError = Vector2.Dot((pb - pa), (pb - pa));
-        positionalError = Math.Max(0.0f, positionalError - 0.01f);
+        positionalError = System.Math.Max(0.0f, positionalError - 0.01f);
         Bias = (beta / dt) * positionalError;
     }
 
@@ -82,11 +88,11 @@ public class JointConstraint : Constraint
         VecN impulses = Jacobian.Transpose() * lambda;
 
         //apply lambda impulse to first and second body
-        First.ApplyLinearImpulse(new Vector2(impulses[0], impulses[1]));
-        First.ApplyAngularImpulse(impulses[2]);
+        First.Particle.ApplyLinearImpulse(new Vector2(impulses[0], impulses[1]), First.Shape.InverseMass);
+        First.Particle.ApplyAngularImpulse(impulses[2], First.Shape.InverseMomentOfInertia);
 
-        Second.ApplyLinearImpulse(new Vector2(impulses[3], impulses[4]));
-        Second.ApplyAngularImpulse(impulses[5]);
+        Second.Particle.ApplyLinearImpulse(new Vector2(impulses[3], impulses[4]), Second.Shape.InverseMass);
+        Second.Particle.ApplyAngularImpulse(impulses[5], Second.Shape.InverseMomentOfInertia);
     }
 
     public override void PostSolve()

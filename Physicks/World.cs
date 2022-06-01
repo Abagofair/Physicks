@@ -9,10 +9,10 @@ public class World
     private float _gravity;
     private float _airDrag;
 
-    private Dictionary<int, Body> _bodies;
+    private List<Particle> _particles;
 
-    public List<Constraint> _constraints;
-    public List<PenetrationConstraint> _penetrationContraints;
+    private List<Constraint> _constraints;
+    private List<PenetrationConstraint> _penetrationContraints;
 
     private CollisionSystem _collisionSystem;
 
@@ -37,7 +37,7 @@ public class World
         PixelsPerMeter = pixelsPerMeter;
         SimulationHertz = simulationHertz;
 
-        _bodies = new Dictionary<int, Body>();
+        _particles = new List<Particle>();
         _constraints = new List<Constraint>();
         _penetrationContraints = new List<PenetrationConstraint>();
     }
@@ -61,43 +61,33 @@ public class World
 
     private void OnCollisionHandler(object? sender, CollisionSystem.CollisionResult e)
     {
-        if (_bodies.TryGetValue(e.A.Id, out Body? bodyA) &&
-            _bodies.TryGetValue(e.B.Id, out Body? bodyB))
+        foreach (CollisionContact collisionContact in e.CollisionContacts)
         {
-            //e.CollisionContact?.ResolvePenetrationByImpulse(bodyA, bodyB);
-            foreach (CollisionContact collisionContact in e.CollisionContacts)
-            {
-                var penConstraint = new PenetrationConstraint(
-                    bodyA,
-                    bodyB,
-                    collisionContact.StartPosition,
-                    collisionContact.EndPosition,
-                    collisionContact.Normal);
+            var penConstraint = new PenetrationConstraint(
+                e.A,
+                e.B,
+                collisionContact.StartPosition,
+                collisionContact.EndPosition,
+                collisionContact.Normal);
 
-                _penetrationContraints.Add(penConstraint);
-            }
+            _penetrationContraints.Add(penConstraint);
         }
     }
 
-    public void RegisterBody(Body body)
+    public void RegisterParticle(Particle particle)
     {
-        if (body == null) throw new ArgumentNullException(nameof(body));
+        if (particle == null) throw new ArgumentNullException(nameof(particle));
 
-        if (body.Shape is PolygonShape shapeB)
-        {
-            shapeB.TransformVertices(body.Transform);
-        }
-
-        _bodies.Add(body.Id, body);
+        _particles.Add(particle);
     }
 
-    public void RegisterBodies(IEnumerable<Body> bodies)
+    public void RegisterParticles(IEnumerable<Particle> particles)
     {
-        if (bodies == null) throw new ArgumentNullException(nameof(bodies));
+        if (particles == null) throw new ArgumentNullException(nameof(particles));
 
-        foreach (Body body in bodies)
+        foreach (Particle particle in particles)
         {
-            RegisterBody(body);
+            RegisterParticle(particle);
         }
     }
 
@@ -126,14 +116,14 @@ public class World
 
         while (_accumulator >= SecondsPerFrame)
         {
-            foreach (Body physicsObject in _bodies.Values)
+            foreach (Collideable collideable in _collisionSystem.Collideables)
             {
                 //physicsObject.AddForce(CreateDragForce(physicsObject, _airDrag * MetersPerPixel));
-                physicsObject.AddForce(new Vector2(0.0f, physicsObject.Mass * 9.8f * 50.0f));
-                physicsObject.IntegrateForces(dt);
+                //particle.AddForce(new Vector2(0.0f, particle.Mass * 9.8f * 50.0f));
+                _integrator.IntegrateForces(collideable.Particle, collideable.Shape, dt);
             }
 
-            _collisionSystem.HandleCollisions(_bodies.Values.ToArray());
+            _collisionSystem.HandleCollisions();
 
             var constraintsToSolve = _constraints.Concat(_penetrationContraints);
 
@@ -155,119 +145,13 @@ public class World
                 constraint.PostSolve();
             }
 
-            foreach (Body physicsObject in _bodies.Values)
+            foreach (Particle particle in _particles)
             {
-                physicsObject.IntegrateVelocities(dt);
+                _integrator.IntegrateVelocities(particle, dt);
             }
 
             _accumulator -= dt;
             ElapsedTimeMilliseconds += dt;
         }
-    }
-
-    public void Update(ReadOnlySpan<Particle> particles, float dt)
-    {
-        _penetrationContraints.Clear();
-
-        _accumulator += dt;
-
-        while (_accumulator >= SecondsPerFrame)
-        {
-            for (int i = 0; i < particles.Length; i++)
-            {
-                var particle = particles[i];
-                particle.Force += new Vector2(0.0f, particle.Mass * 9.8f);
-                _integrator.IntegrateForces(particle, dt);
-            }
-
-            _collisionSystem.HandleCollisions(_bodies.Values.ToArray());
-
-            var constraintsToSolve = _constraints.Concat(_penetrationContraints);
-
-            foreach (Constraint constraint in constraintsToSolve)
-            {
-                constraint.PreSolve(dt);
-            }
-
-            for (int i = 0; i < 5; i++)
-            {
-                foreach (Constraint constraint in constraintsToSolve)
-                {
-                    constraint.Solve();
-                }
-            }
-
-            foreach (Constraint constraint in constraintsToSolve)
-            {
-                constraint.PostSolve();
-            }
-
-            foreach (Body physicsObject in _bodies.Values)
-            {
-                physicsObject.IntegrateVelocities(dt);
-            }
-
-            _accumulator -= dt;
-            ElapsedTimeMilliseconds += dt;
-        }
-    }
-
-    public static Vector2 CreateDragForce(Body physics2DObject, float dragCoeff)
-    {
-        if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
-
-        return CreateDragForce(physics2DObject.LinearVelocity, dragCoeff);
-    }
-
-    public static Vector2 CreateDragForce(Vector2 velocity, float dragCoeff)
-    {
-        Vector2 dragForce = Vector2.Zero;
-
-        float magSquared = velocity.LengthSquared();
-        if (magSquared > 0)
-        {
-            dragForce = dragCoeff * magSquared * Vector2.Normalize(velocity) * -1.0f;
-        }
-
-        return dragForce;
-    }
-
-    public static Vector2 CreateFrictionForce(Body physics2DObject, float frictionCoeff)
-    {
-        if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
-
-        return CreateFrictionForce(physics2DObject.LinearVelocity, frictionCoeff);
-    }
-
-    public static Vector2 CreateFrictionForce(Vector2 velocity, float frictionCoeff)
-        => frictionCoeff * Vector2.Normalize(velocity) * -1.0f;
-
-    public static Vector2 CreateGravitationalForce(Body a,
-        Body b, float gravitationalCoeff)
-    {
-        if (a == null) throw new ArgumentNullException(nameof(a));
-        if (b == null) throw new ArgumentNullException(nameof(b));
-
-        Vector2 distanceBA = (b.Position - a.Position);
-        float distanceBASquared = distanceBA.LengthSquared();
-
-        float attrMag = gravitationalCoeff * (a.Mass * b.Mass) / distanceBASquared;
-
-        return Vector2.Normalize(distanceBA) * attrMag;
-    }
-
-    public static Vector2 CreateSpringForce(Body physics2DObject, Vector2 anchor, float restLength, float k)
-    {
-        if (physics2DObject == null) throw new ArgumentNullException(nameof(physics2DObject));
-
-        Vector2 d = physics2DObject.Position - anchor;
-
-        float displacement = d.Length() - restLength;
-
-        Vector2 springDirection = Vector2.Normalize(d);
-        float springMagnitude = -k * displacement;
-
-        Vector2 springForce = springDirection * springMagnitude;
-        return springForce;
     }
 }

@@ -6,18 +6,23 @@ namespace Physicks.Collision;
 [Serializable]
 public class BoxShape : PolygonShape
 {
-    public BoxShape(float width, float height)
+    public BoxShape(
+        float width, 
+        float height,
+        float mass)
+        : base(
+            new Vector2[]
+            {
+                new Vector2(-width / 2.0f, -height / 2.0f),
+                new Vector2(width / 2.0f, -height / 2.0f),
+                new Vector2(width / 2.0f, height / 2.0f),
+                new Vector2(-width / 2.0f, height / 2.0f)
+            }, 
+            mass,
+            0.083333f * (width * width + height * height))
     {
         Width = width;
         Height = height;
-
-        Vertices = new Vector2[]
-        {
-            new Vector2(-Width / 2.0f, -Height / 2.0f),
-            new Vector2(Width / 2.0f, -Height / 2.0f),
-            new Vector2(Width / 2.0f, Height / 2.0f),
-            new Vector2(-Width / 2.0f, Height / 2.0f)
-        };
     }
 
     [JsonInclude]
@@ -25,6 +30,4 @@ public class BoxShape : PolygonShape
 
     [JsonInclude]
     public float Height { get; }
-
-    public override float MomentOfInertia => 0.083333f * (Width * Width + Height * Height);
 }

@@ -4,14 +4,21 @@ public class CollisionSystem
 {
     public event EventHandler<CollisionResult>? OnCollision;
 
-    public void HandleCollisions(ICollideable[] collideables)
+    public CollisionSystem()
     {
-        for (int i = 0; i < collideables.Length - 1; i++)
+        Collideables = new List<Collideable>();
+    }
+
+    public List<Collideable> Collideables { get; }
+
+    public void HandleCollisions()
+    {
+        for (int i = 0; i < Collideables.Count - 1; i++)
         {
-            for (int j = i + 1; j < collideables.Length; j++)
+            for (int j = i + 1; j < Collideables.Count; j++)
             {
-                ICollideable a = collideables[i];
-                ICollideable b = collideables[j];
+                Collideable a = Collideables[i];
+                Collideable b = Collideables[j];
 
                 if (CollisionDetection.IsCollidingCircleCircle(a, b, out List<CollisionContact> collisionContacts) ||
                     CollisionDetection.IsCollidingPolygonPolygon(a, b, out collisionContacts) ||
@@ -31,8 +38,8 @@ public class CollisionSystem
     public class CollisionResult : EventArgs
     {
         public CollisionResult(
-            ICollideable a,
-            ICollideable b,
+            Collideable a,
+            Collideable b,
             List<CollisionContact> collisionContacts)
         {
             A = a;
@@ -40,8 +47,8 @@ public class CollisionSystem
             CollisionContacts = collisionContacts;
         }
 
-        public ICollideable A { get; }
-        public ICollideable B { get; }
+        public Collideable A { get; }
+        public Collideable B { get; }
         public List<CollisionContact> CollisionContacts { get; }
     }
 }

@@ -44,8 +44,8 @@ public class CollisionContact
     {
         ResolvePenetration(a, b);
 
-        float e = Math.Min(a.Restitution, b.Restitution);
-        float f = Math.Min(a.Friction, b.Friction);
+        float e = System.Math.Min(a.Restitution, b.Restitution);
+        float f = System.Math.Min(a.Friction, b.Friction);
 
         Vector2 ra = EndPosition - a.Position;
         Vector2 rb = StartPosition - b.Position;

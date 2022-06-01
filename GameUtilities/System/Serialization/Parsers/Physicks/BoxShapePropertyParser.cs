@@ -26,6 +26,7 @@ public class BoxShapePropertyParser : IPropertyParser
             throw new JsonException(nameof(width));
         float parsedHeight = (float)jsonReader.GetDouble();
 
-        propertyInfo.SetValue(setValueObject, new BoxShape(parsedWidth, parsedHeight));
+        //todo
+        propertyInfo.SetValue(setValueObject, new BoxShape(parsedWidth, parsedHeight, 1.0f));
     }
 }

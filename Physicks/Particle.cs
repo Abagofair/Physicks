@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using Physicks.MathHelpers;
 
 namespace Physicks;
 
@@ -9,8 +8,6 @@ public class Particle
 
     public Particle(
         Vector2 position,
-        float mass,
-        float momentOfInertia,
         float restitution,
         float friction,
         bool isFixedRotation,
@@ -19,12 +16,6 @@ public class Particle
         IsFixedRotation = isFixedRotation;
 
         Type = particleType;
-
-        Mass = mass;
-        InverseMass = 1.0f / mass;
-
-        MomentOfInertia = momentOfInertia;
-        InverseMomentOfInertia = 1.0f / momentOfInertia;
 
         Restitution = restitution;
         Friction = friction;
@@ -41,14 +32,11 @@ public class Particle
 
     public readonly bool IsFixedRotation;
 
-    public readonly float Mass;
-    public readonly float InverseMass;
+    public readonly float Restitution;
+    public readonly float Friction;
 
     public readonly float MomentOfInertia;
     public readonly float InverseMomentOfInertia;
-
-    public readonly float Restitution;
-    public readonly float Friction;
 
     public float AngularAcceleration;
     public float AngularVelocity;
@@ -60,34 +48,51 @@ public class Particle
     public Vector2 Position;
     public Vector2 Force;
 
+    //cache transform
+    public Matrix4x4 Transform => Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0.0f));
+
+    [Obsolete("Should probably only use the transpose since the matrix is orthogonal")]
+    public Matrix4x4 InverseTransform
+    {
+        get
+        {
+            if (Matrix4x4.Invert(Transform, out Matrix4x4 invertedMatrix))
+            {
+                return invertedMatrix;
+            }
+            throw new Exception("Matrix inversion failed");
+        }
+    }
+
     public void AddForce(Vector2 force)
     {
         Force += force;
     }
 
-    public void ApplyLinearImpulse(Vector2 impulse)
+    public void ApplyLinearImpulse(Vector2 impulse, float invMass)
     {
         if (IsFixedRotation)
             return;
 
-        LinearVelocity += impulse * InverseMass;
+        LinearVelocity += impulse * invMass;
     }
 
-    public void ApplyAngularImpulse(float impulse)
+    public void ApplyAngularImpulse(float impulse, float inverseMomentOfInertia)
     {
         if (IsFixedRotation)
             return;
 
-        AngularVelocity += impulse * InverseMomentOfInertia;
+        AngularVelocity += impulse * inverseMomentOfInertia;
     }
 
-    public void ApplyAngularImpulse(Vector2 impulse, Vector2 distanceFromCenterOfMass)
+    public void ApplyAngularImpulse(Vector2 impulse, Vector2 distanceFromCenterOfMass,
+        float inverseMass, float inverseMomentOfInertia)
     {
         if (IsFixedRotation)
             return;
 
-        LinearVelocity += impulse * InverseMass;
-        AngularVelocity += MathFunctions.Cross(distanceFromCenterOfMass, impulse) * InverseMomentOfInertia;
+        LinearVelocity += impulse * inverseMass;
+        AngularVelocity += Math.Math.Cross(distanceFromCenterOfMass, impulse) * inverseMomentOfInertia;
     }
 
     public override int GetHashCode() => Id;

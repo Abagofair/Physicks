@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Physicks.Math;
 
 namespace Physicks;
 
@@ -30,7 +31,7 @@ public class SpringSystem
         {
             if (!connector.EndAnchor.IsKinematic)
             {
-                Vector2 springForce = World.CreateSpringForce(
+                Vector2 springForce = Forces.Spring(
                     connector.StartAnchor,
                     connector.EndAnchor.Position,
                     //world.TransformToWorldUnit(connector.Length),

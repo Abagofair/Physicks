@@ -2,5 +2,8 @@
 
 public interface IShape
 {
-    virtual float MomentOfInertia => 1.0f;
+    float Mass { get; set; }
+    float InverseMass { get; set; }
+    float MomentOfInertia { get; set; }
+    float InverseMomentOfInertia { get; set; }
 }

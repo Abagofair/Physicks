@@ -76,7 +76,7 @@ namespace Examples
                 {
                     _sceneGraph = _sceneLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), fileName));
                     _sceneGraph.SetupBuffers(GraphicsDevice);
-                    _world.RegisterBodies(_sceneGraph.Entities.Query<Body>());
+                    _world.RegisterParticles(_sceneGraph.Entities.Query<Particle>());
                 });
 
             //Spring[] springs = new[]
@@ -121,21 +121,28 @@ namespace Examples
             if (Keyboard.GetState().IsKeyDown(Keys.Space) && !pressed)
             {
                 var ec = new EntityContext("a");
-                var b = new Body()
-                {
-                    Position = new System.Numerics.Vector2(Mouse.GetState().X * World.MetersPerPixel, Mouse.GetState().Y * World.MetersPerPixel),
-                    Shape = new BoxShape(50.0f, 50.0f),
-                    Restitution = 0.02f
-                };
-                ec.AddOrOverride<Physicks.Body>(b);
+                var b = new Particle(
+                    new System.Numerics.Vector2(Mouse.GetState().X * World.MetersPerPixel, Mouse.GetState().Y * World.MetersPerPixel),
+                    1.0f,
+                    1.0f,
+                    false,
+                    ParticleType.Dynamic);
+                ec.AddOrOverride<Particle>(b);
                 ec.AddOrOverride<RenderableQuad>(new RenderableQuad()
                 {
                     IsDrawable = true,
                     Scale = new System.Numerics.Vector2(50.0f, 50.0f)
                 });
+
+                var collideable = new Collideable(
+                    b,
+                    new BoxShape(50.0f, 50.0f, 1.0f));
+
+                _collisionSystem.Collideables.Add(collideable);
+
                 _sceneGraph.AddEntity(ec);
                 _sceneGraph.SetupBuffers(GraphicsDevice);
-                _world.RegisterBody(b);
+                _world.RegisterParticle(b);
                 pressed = true;
             }
             else if (Keyboard.GetState().IsKeyUp(Keys.Space))

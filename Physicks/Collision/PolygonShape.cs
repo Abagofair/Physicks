@@ -1,31 +1,45 @@
 ﻿using System.Numerics;
-using Physicks.MathHelpers;
 
 namespace Physicks.Collision;
 
 public class PolygonShape : IShape
 {
-    public PolygonShape()
+    public PolygonShape(
+        Vector2[] vertices,
+        float momentOfInertia,
+        float mass)
     {
-        Vertices = Array.Empty<Vector2>();
-        VerticesInWorld = Array.Empty<Vector2>();
+        if (vertices == null || vertices.Length == 0) throw new ArgumentException("Cannot be empty or null", nameof(vertices));
+
+        Vertices = vertices;
+
+        MomentOfInertia = momentOfInertia;
+        InverseMomentOfInertia = 1.0f / momentOfInertia;
+        Mass = mass;
+        InverseMomentOfInertia = 1.0f / mass;
     }
 
     public PolygonShape(
         Particle[] particles,
-        float momentOfInertia)
+        float momentOfInertia,
+        float mass)
     {
         if (particles == null || particles.Length == 0) throw new ArgumentException("Cannot be empty or null", nameof(particles));
 
         Vertices = ParticleToPosition(particles).ToArray();
-        VerticesInWorld = Array.Empty<Vector2>();
+        
         MomentOfInertia = momentOfInertia;
+        InverseMomentOfInertia = 1.0f / momentOfInertia;
+        Mass = mass;
+        InverseMomentOfInertia = 1.0f / mass;
     }
 
     public Vector2[] Vertices { get; set; }
-    [Obsolete("Remove this useless trapping")]
-    public Vector2[] VerticesInWorld { get; set; }
-    public virtual float MomentOfInertia { get; set; }
+
+    public float Mass { get; set; }
+    public float InverseMass { get; set; }
+    public float MomentOfInertia { get; set; }
+    public float InverseMomentOfInertia { get; set; }
 
     public void TransformVertices(Matrix4x4 transform)
     {
@@ -73,8 +87,8 @@ public class PolygonShape : IShape
         int numOut = 0;
 
         Vector2 normal = Vector2.Normalize((c1 - c0));
-        float dist0 = MathFunctions.Cross((contactsIn[0] - c0), normal);
-        float dist1 = MathFunctions.Cross((contactsIn[1] - c0), normal);
+        float dist0 = Math.Math.Cross((contactsIn[0] - c0), normal);
+        float dist1 = Math.Math.Cross((contactsIn[1] - c0), normal);
 
         if (dist0 <= 0)
         {

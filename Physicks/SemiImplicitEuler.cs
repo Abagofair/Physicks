@@ -1,12 +1,13 @@
 ﻿using System.Numerics;
+using Physicks.Collision;
 
 namespace Physicks;
 
 public class SemiImplicitEuler : IIntegrator
 {
-    public void IntegrateForces(Particle particle, float dt)
+    public void IntegrateForces(Particle particle, IShape shape, float dt)
     {
-        particle.LinearAcceleration = particle.Force * particle.InverseMass;
+        particle.LinearAcceleration = particle.Force * shape.InverseMass;
         particle.LinearVelocity += particle.LinearAcceleration * dt;
 
         if (!particle.IsFixedRotation)

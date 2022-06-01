@@ -1,12 +1,12 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
 using Physicks.Collision;
-using Physicks.MathHelpers;
+using Physicks.Math;
 
 namespace Physicks;
 
 [Serializable]
-public class Body : IEquatable<Body>, ICollideable
+public class Body : IEquatable<Body>
 {
     private static int id = 1;
 
@@ -189,7 +189,7 @@ public class Body : IEquatable<Body>, ICollideable
             return;
 
         LinearVelocity += impulse * InverseMass;
-        AngularVelocity += MathFunctions.Cross(distanceFromCenterOfMass, impulse) * InverseMomentOfInertia;
+        AngularVelocity += Math.Math.Cross(distanceFromCenterOfMass, impulse) * InverseMomentOfInertia;
     }
 
     public override int GetHashCode() => Id;

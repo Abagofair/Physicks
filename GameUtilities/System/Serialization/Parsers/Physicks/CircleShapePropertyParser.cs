@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Numerics;
+using System.Reflection;
 using System.Text.Json;
 using Physicks.Collision;
 
@@ -19,6 +20,7 @@ public class CircleShapePropertyParser : IPropertyParser
             throw new JsonException(nameof(radius));
         float parsedRadius = (float)jsonReader.GetDouble();
 
-        propertyInfo.SetValue(setValueObject, new CircleShape(parsedRadius));
+        //todo
+        propertyInfo.SetValue(setValueObject, new CircleShape(parsedRadius, Vector2.Zero, 1.0f));
     }
 }

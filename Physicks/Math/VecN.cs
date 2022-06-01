@@ -1,4 +1,4 @@
-﻿namespace Physicks.MathHelpers;
+﻿namespace Physicks.Math;
 
 public class VecN
 {
