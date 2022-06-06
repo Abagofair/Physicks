@@ -62,7 +62,7 @@ public class PenetrationConstraint : Constraint
         Friction = System.Math.Max(First.Particle.Friction, Second.Particle.Friction);
         if (Friction > 0.0f)
         {
-            var tangent = new Vector2(normalInWorldSpace.Y, -normalInWorldSpace.X);
+            var tangent = normalInWorldSpace.Normal();
             Jacobian.Rows[1][0] = -tangent.X;
             Jacobian.Rows[1][1] = -tangent.Y;
             Jacobian.Rows[1][2] = -Math.Math.Cross(ra, tangent);

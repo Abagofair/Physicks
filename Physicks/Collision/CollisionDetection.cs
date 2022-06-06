@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Physicks.Math;
 
 namespace Physicks.Collision;
 
@@ -60,16 +61,16 @@ public class CollisionDetection
         for (int i = 0; i < polygonA.Vertices.Length; i++)
         {
             var va1 = Vector2.Transform(polygonA.Vertices[i], a.Particle.Transform);//a.WorldPosition(polygonA.Vertices[i]);
-            var vb1 = Vector2.Transform(polygonA.Vertices[(i + 1) % polygonA.Vertices.Length], b.Particle.Transform);
-            var ba = (vb1 - va1);
-            var normal = Vector2.Normalize(new Vector2(ba.Y, -ba.X));
+            var vb1 = Vector2.Transform(polygonA.Vertices[(i + 1) % polygonA.Vertices.Length], a.Particle.Transform);
+            var ba = vb1 - va1;
+            var normal = ba.Normal();
 
             float minimumSeparation = float.MaxValue;
             Vector2 minimumVertex = Vector2.Zero;
             for (int j = 0; j < polygonB.Vertices.Length; j++)
             {
                 Vector2 vertexB = Vector2.Transform(polygonB.Vertices[j], b.Particle.Transform);
-                float projection = Vector2.Dot((vertexB - va1), normal);
+                float projection = Vector2.Dot(vertexB - va1, normal);
                 if (projection < minimumSeparation)
                 {
                     minimumSeparation = projection;
@@ -114,27 +115,34 @@ public class CollisionDetection
         PolygonShape referenceShape;
         PolygonShape incidentShape;
         int indexReferenceEdge;
+        Matrix4x4 referenceTransform;
+        Matrix4x4 incidentTransform;
 
         if (abSeparation > baSeparation)
         {
             referenceShape = aPolygonShape;
             incidentShape = bPolygonShape;
             indexReferenceEdge = aIndexReferenceEdge;
+            referenceTransform = a.Particle.Transform;
+            incidentTransform = b.Particle.Transform;
         }
         else
         {
             referenceShape = bPolygonShape;
             incidentShape = aPolygonShape;
             indexReferenceEdge = bIndexReferenceEdge;
+            referenceTransform = b.Particle.Transform;
+            incidentTransform = a.Particle.Transform;
         }
 
-        Vector2 referenceEdge = referenceShape.EdgeAt(indexReferenceEdge);
+        Vector2 referenceEdge = referenceShape.EdgeAt(indexReferenceEdge, referenceTransform);
+        Vector2 referenceEdgeNormal = referenceEdge.Normal();
 
-        int incidentIndex = incidentShape.FindIncidentEdge(Vector2.Normalize(new Vector2(referenceEdge.Y, -referenceEdge.X)));
-        int incidentNextIndex = (incidentIndex + 1) % incidentShape.VerticesInWorld.Length;
+        int incidentIndex = incidentShape.FindIncidentEdge(referenceEdgeNormal, incidentTransform);
+        int incidentNextIndex = (incidentIndex + 1) % incidentShape.Vertices.Length;
 
-        Vector2 v0 = incidentShape.VerticesInWorld[incidentIndex];
-        Vector2 v1 = incidentShape.VerticesInWorld[incidentNextIndex];
+        Vector2 v0 = Vector2.Transform(incidentShape.Vertices[incidentIndex], incidentTransform);
+        Vector2 v1 = Vector2.Transform(incidentShape.Vertices[incidentNextIndex], incidentTransform);
 
         var contactPoints = new List<Vector2>()
         {
@@ -142,15 +150,15 @@ public class CollisionDetection
         };
         var clippedPoints = new List<Vector2>(contactPoints);
 
-        for (int i = 0; i < referenceShape.VerticesInWorld.Length; i++)
+        for (int i = 0; i < referenceShape.Vertices.Length; i++)
         {
             if (i == indexReferenceEdge)
             {
                 continue;
             }
 
-            Vector2 c0 = referenceShape.VerticesInWorld[i];
-            Vector2 c1 = referenceShape.VerticesInWorld[(i + 1) % referenceShape.VerticesInWorld.Length];
+            Vector2 c0 = Vector2.Transform(referenceShape.Vertices[i], referenceTransform);
+            Vector2 c1 = Vector2.Transform(referenceShape.Vertices[(i + 1) % referenceShape.Vertices.Length], referenceTransform);
 
             int numClipped = referenceShape.ClipSegmentToLine(contactPoints, clippedPoints, c0, c1);
             if (numClipped < 2)
@@ -162,17 +170,18 @@ public class CollisionDetection
             contactPoints.AddRange(clippedPoints);
         }
 
-        var vref = referenceShape.VerticesInWorld[indexReferenceEdge];
+        Vector2 vref = Vector2.Transform(referenceShape.Vertices[indexReferenceEdge], referenceTransform);
 
         foreach (var vclip in clippedPoints)
         {
-            float separation = Vector2.Dot(vclip - vref, Vector2.Normalize(new Vector2(referenceEdge.Y, -referenceEdge.X)));
+            float separation = Vector2.Dot(vclip - vref, referenceEdgeNormal);
 
             if (separation <= 0)
             {
-                var contactNormal = Vector2.Normalize(new Vector2(referenceEdge.Y, -referenceEdge.X));
+                Vector2 contactNormal = referenceEdgeNormal;
                 Vector2 contactStart;
                 Vector2 contactEnd;
+
                 if (baSeparation >= abSeparation)
                 {
                     contactStart = vclip + contactNormal * -separation;

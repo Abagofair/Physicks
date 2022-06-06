@@ -99,6 +99,54 @@ namespace Examples
 
             //_massSpringSystem = new MassSpringSystem(springs);
 
+            var ec = new EntityContext("a");
+            var b = new Particle(
+                new System.Numerics.Vector2(900.0f, 850.0f),
+                0.02f,
+                1.0f,
+                false,
+                ParticleType.Static);
+            ec.AddOrOverride<Particle>(b);
+            ec.AddOrOverride<RenderableQuad>(new RenderableQuad()
+            {
+                IsDrawable = true,
+                Scale = new System.Numerics.Vector2(1000.0f, 25.0f)
+            });
+
+            var collideable = new Collideable(
+                b,
+                new BoxShape(1000.0f, 25.0f, 1.0f));
+
+            _collisionSystem.Collideables.Add(collideable);
+            _sceneGraph.AddEntity(ec);
+
+            _world.RegisterParticle(b);
+
+            ec = new EntityContext("a");
+            b = new Particle(
+                new System.Numerics.Vector2(900.0f, 450.0f),
+                0.02f,
+                1.0f,
+                false,
+                ParticleType.Dynamic);
+            ec.AddOrOverride<Particle>(b);
+            ec.AddOrOverride<RenderableQuad>(new RenderableQuad()
+            {
+                IsDrawable = true,
+                Scale = new System.Numerics.Vector2(50.0f, 50.0f)
+            });
+
+            collideable = new Collideable(
+                b,
+                new BoxShape(50.0f, 50.0f, 1.0f));
+
+            _collisionSystem.Collideables.Add(collideable);
+            _sceneGraph.AddEntity(ec);
+
+            _sceneGraph.SetupBuffers(GraphicsDevice);
+            
+            _world.RegisterParticle(b);
+
             base.Initialize();
         }
 
@@ -123,7 +171,7 @@ namespace Examples
                 var ec = new EntityContext("a");
                 var b = new Particle(
                     new System.Numerics.Vector2(Mouse.GetState().X * World.MetersPerPixel, Mouse.GetState().Y * World.MetersPerPixel),
-                    1.0f,
+                    0.02f,
                     1.0f,
                     false,
                     ParticleType.Dynamic);
@@ -169,7 +217,7 @@ namespace Examples
             _spriteBatch.Begin(transformMatrix: Matrix.Identity);
 
 
-            foreach ((RenderableQuad renderable, Body physicsObject) in _sceneGraph.Entities.Query<RenderableQuad, Body>())
+            foreach ((RenderableQuad renderable, Particle particle) in _sceneGraph.Entities.Query<RenderableQuad, Particle>())
             {
                 //if (physicsObject.Shape is CircleShape shape)
                 //{ 
@@ -177,7 +225,7 @@ namespace Examples
                 //}
                 //else
                 {
-                    _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(renderable.Scale.X, renderable.Scale.Y, 1.0f) * physicsObject.PixelsPerMeterTransform.ToXnaMatrix4x4());
+                    _debugSpriteRenderer.Draw(renderable, Matrix.CreateScale(renderable.Scale.X, renderable.Scale.Y, 1.0f) * particle.Transform.ToXnaMatrix4x4());
                 }
 
                 /*var boxShapeWidthScaled = ((BoxShape)physicsObject.Shape).Width * World.PixelsPerMeter;

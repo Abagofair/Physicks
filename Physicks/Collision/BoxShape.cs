@@ -18,8 +18,8 @@ public class BoxShape : PolygonShape
                 new Vector2(width / 2.0f, height / 2.0f),
                 new Vector2(-width / 2.0f, height / 2.0f)
             }, 
-            mass,
-            0.083333f * (width * width + height * height))
+            0.083333f * (width * width + height * height),
+            mass)
     {
         Width = width;
         Height = height;

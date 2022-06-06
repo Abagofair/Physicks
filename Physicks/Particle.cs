@@ -66,12 +66,15 @@ public class Particle
 
     public void AddForce(Vector2 force)
     {
+        if (Type == ParticleType.Static) 
+            return;
+
         Force += force;
     }
 
     public void ApplyLinearImpulse(Vector2 impulse, float invMass)
     {
-        if (IsFixedRotation)
+        if (Type == ParticleType.Static || IsFixedRotation)
             return;
 
         LinearVelocity += impulse * invMass;
@@ -79,7 +82,7 @@ public class Particle
 
     public void ApplyAngularImpulse(float impulse, float inverseMomentOfInertia)
     {
-        if (IsFixedRotation)
+        if (Type == ParticleType.Static || IsFixedRotation)
             return;
 
         AngularVelocity += impulse * inverseMomentOfInertia;
@@ -88,7 +91,7 @@ public class Particle
     public void ApplyAngularImpulse(Vector2 impulse, Vector2 distanceFromCenterOfMass,
         float inverseMass, float inverseMomentOfInertia)
     {
-        if (IsFixedRotation)
+        if (Type == ParticleType.Static || IsFixedRotation)
             return;
 
         LinearVelocity += impulse * inverseMass;

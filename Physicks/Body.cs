@@ -155,11 +155,6 @@ public class Body : IEquatable<Body>
         {
             Rotation += AngularVelocity * dt;
         }
-
-        if (Shape is PolygonShape polygonShape)
-        {
-            polygonShape.TransformVertices(Transform);
-        }
     }
 
     public void AddForce(Vector2 force)

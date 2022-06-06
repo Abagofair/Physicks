@@ -63,14 +63,14 @@ public class World
     {
         foreach (CollisionContact collisionContact in e.CollisionContacts)
         {
-            var penConstraint = new PenetrationConstraint(
+            var pc = new PenetrationConstraint(
                 e.A,
                 e.B,
                 collisionContact.StartPosition,
                 collisionContact.EndPosition,
                 collisionContact.Normal);
 
-            _penetrationContraints.Add(penConstraint);
+            _penetrationContraints.Add(pc);
         }
     }
 
@@ -116,10 +116,10 @@ public class World
 
         while (_accumulator >= SecondsPerFrame)
         {
-            foreach (Collideable collideable in _collisionSystem.Collideables)
+            foreach (Collideable collideable in _collisionSystem.Collideables.Where(x => x.Particle.Type != ParticleType.Static))
             {
                 //physicsObject.AddForce(CreateDragForce(physicsObject, _airDrag * MetersPerPixel));
-                //particle.AddForce(new Vector2(0.0f, particle.Mass * 9.8f * 50.0f));
+                collideable.Particle.AddForce(new Vector2(0.0f, collideable.Shape.Mass * 9.8f * 50.0f));
                 _integrator.IntegrateForces(collideable.Particle, collideable.Shape, dt);
             }
 

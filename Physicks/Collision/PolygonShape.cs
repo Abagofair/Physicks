@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Physicks.Math;
 
 namespace Physicks.Collision;
 
@@ -16,7 +17,7 @@ public class PolygonShape : IShape
         MomentOfInertia = momentOfInertia;
         InverseMomentOfInertia = 1.0f / momentOfInertia;
         Mass = mass;
-        InverseMomentOfInertia = 1.0f / mass;
+        InverseMass = 1.0f / mass;
     }
 
     public PolygonShape(
@@ -31,7 +32,7 @@ public class PolygonShape : IShape
         MomentOfInertia = momentOfInertia;
         InverseMomentOfInertia = 1.0f / momentOfInertia;
         Mass = mass;
-        InverseMomentOfInertia = 1.0f / mass;
+        InverseMass = 1.0f / mass;
     }
 
     public Vector2[] Vertices { get; set; }
@@ -41,35 +42,29 @@ public class PolygonShape : IShape
     public float MomentOfInertia { get; set; }
     public float InverseMomentOfInertia { get; set; }
 
-    public void TransformVertices(Matrix4x4 transform)
-    {
-        if (Vertices.Length != VerticesInWorld?.Length)
-        {
-            VerticesInWorld = new Vector2[Vertices.Length];
-        }
-
-        for (int i = 0; i < Vertices.Length; i++)
-        {
-            Vector2 vertex = Vertices[i];
-            VerticesInWorld[i] = Vector2.Transform(vertex, transform);
-        }
-    }
-
-    public Vector2 EdgeAt(int index)
+    /// <summary>
+    /// Get edge at index in local space
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    public Vector2 EdgeAt(int index, Matrix4x4 transform)
     {
         int currVertex = index;
-        int nextVertex = (index + 1) % VerticesInWorld.Length;
-        return VerticesInWorld[nextVertex] - VerticesInWorld[currVertex];
+        int nextVertex = (index + 1) % Vertices.Length;
+        return 
+            Vector2.Transform(Vertices[nextVertex], transform)
+            - 
+            Vector2.Transform(Vertices[currVertex], transform);
     }
 
-    public int FindIncidentEdge(Vector2 normal)
+    public int FindIncidentEdge(Vector2 normal, Matrix4x4 transform)
     {
         int indexIncidentEdge = 0;
         float minProj = float.MaxValue;
 
-        for (int i = 0; i < VerticesInWorld.Length; i++)
+        for (int i = 0; i < Vertices.Length; i++)
         {
-            var edgeNormal = Vector2.Normalize(new Vector2(EdgeAt(i).Y, -EdgeAt(i).X));
+            var edgeNormal = EdgeAt(i, transform).Normal();
             var proj = Vector2.Dot(edgeNormal, normal);
 
             if (proj < minProj)
